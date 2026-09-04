@@ -1,4 +1,4 @@
-import { X, Warning, Building2, Globe, Code, Video, Send, PlusCircle, ExternalLink } from 'lucide-react';
+import { X, Building2, Globe, Code, Video, Send, PlusCircle, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
