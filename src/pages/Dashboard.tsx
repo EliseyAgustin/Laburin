@@ -18,7 +18,7 @@ export function Dashboard() {
       <div className="flex gap-lg h-full pb-sm w-max">
         
         {/* Column: Por aplicar */}
-        <div className="flex flex-col w-[320px] h-full rounded-lg bg-surface-container-low border border-outline-variant overflow-hidden">
+        <div className="flex flex-col w-80 h-full rounded-lg bg-surface-container-low border border-outline-variant overflow-hidden">
           <div className="px-md py-sm border-b border-outline-variant bg-surface flex justify-between items-center shrink-0">
             <h3 className="text-xs font-semibold text-on-surface uppercase tracking-wide">Por aplicar</h3>
             <span className="bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded-full text-xs font-semibold">3</span>
@@ -27,7 +27,7 @@ export function Dashboard() {
             
             <div 
               onClick={() => handleCardClick('frontend-dev')}
-              className="bg-surface-container-lowest border border-outline-variant rounded-md p-md shadow-sm hover:shadow-md hover:border-primary transition-all cursor-pointer border-t-4 border-t-secondary-fixed flex flex-col min-h-[120px]"
+              className="bg-surface-container-lowest border border-outline-variant rounded-md p-md shadow-sm hover:shadow-md hover:border-primary transition-all cursor-pointer border-t-4 border-t-secondary-fixed flex flex-col min-h-30"
             >
               <div className="flex justify-between items-start mb-sm">
                 <h4 className="text-sm font-medium text-on-surface leading-tight">Frontend Developer</h4>
@@ -48,7 +48,7 @@ export function Dashboard() {
 
             <div 
               onClick={() => handleCardClick('ux-ui')}
-              className="bg-surface-container-lowest border border-outline-variant rounded-md p-md shadow-sm hover:shadow-md hover:border-primary transition-all cursor-pointer border-t-4 border-t-primary-fixed flex flex-col min-h-[120px]"
+              className="bg-surface-container-lowest border border-outline-variant rounded-md p-md shadow-sm hover:shadow-md hover:border-primary transition-all cursor-pointer border-t-4 border-t-primary-fixed flex flex-col min-h-30"
             >
               <div className="flex justify-between items-start mb-sm">
                 <h4 className="text-sm font-medium text-on-surface leading-tight">UX/UI Designer</h4>
@@ -71,7 +71,7 @@ export function Dashboard() {
         </div>
 
         {/* Column: Aplicado */}
-        <div className="flex flex-col w-[320px] h-full rounded-lg bg-surface-container-low border border-outline-variant overflow-hidden">
+        <div className="flex flex-col w-80 h-full rounded-lg bg-surface-container-low border border-outline-variant overflow-hidden">
           <div className="px-md py-sm border-b border-outline-variant bg-surface flex justify-between items-center shrink-0">
             <h3 className="text-xs font-semibold text-on-surface uppercase tracking-wide">Aplicado</h3>
             <span className="bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded-full text-xs font-semibold">1</span>
@@ -80,7 +80,7 @@ export function Dashboard() {
             
             <div 
               onClick={() => handleCardClick('react-eng')}
-              className="bg-surface-container-lowest border border-outline-variant rounded-md p-md shadow-sm hover:shadow-md hover:border-primary transition-all cursor-pointer border-t-4 border-t-tertiary-fixed flex flex-col min-h-[120px]"
+              className="bg-surface-container-lowest border border-outline-variant rounded-md p-md shadow-sm hover:shadow-md hover:border-primary transition-all cursor-pointer border-t-4 border-t-tertiary-fixed flex flex-col min-h-30"
             >
               <div className="flex justify-between items-start mb-sm">
                 <h4 className="text-sm font-medium text-on-surface leading-tight">React Engineer</h4>
@@ -103,7 +103,7 @@ export function Dashboard() {
         </div>
 
         {/* Column: En proceso */}
-        <div className="flex flex-col w-[320px] h-full rounded-lg bg-surface-container-low border border-outline-variant overflow-hidden">
+        <div className="flex flex-col w-80 h-full rounded-lg bg-surface-container-low border border-outline-variant overflow-hidden">
           <div className="px-md py-sm border-b border-outline-variant bg-surface flex justify-between items-center shrink-0">
             <h3 className="text-xs font-semibold text-on-surface uppercase tracking-wide">En proceso</h3>
             <span className="bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded-full text-xs font-semibold">0</span>
@@ -115,7 +115,7 @@ export function Dashboard() {
         </div>
         
         {/* Column: Entrevista */}
-        <div className="flex flex-col w-[320px] h-full rounded-lg bg-surface-container-low border border-outline-variant overflow-hidden">
+        <div className="flex flex-col w-80 h-full rounded-lg bg-surface-container-low border border-outline-variant overflow-hidden">
           <div className="px-md py-sm border-b border-outline-variant bg-surface flex justify-between items-center shrink-0">
             <h3 className="text-xs font-semibold text-on-surface uppercase tracking-wide">Entrevista</h3>
             <span className="bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded-full text-xs font-semibold">2</span>
@@ -124,7 +124,7 @@ export function Dashboard() {
             
             <div 
               onClick={() => handleCardClick('senior-product')}
-              className="bg-surface-container-lowest border border-outline-variant rounded-md p-md shadow-sm hover:shadow-md hover:border-primary transition-all cursor-pointer border-t-4 border-t-primary flex flex-col min-h-[120px]"
+              className="bg-surface-container-lowest border border-outline-variant rounded-md p-md shadow-sm hover:shadow-md hover:border-primary transition-all cursor-pointer border-t-4 border-t-primary flex flex-col min-h-30"
             >
               <div className="flex justify-between items-start mb-sm">
                 <h4 className="text-sm font-medium text-on-surface leading-tight">Senior Frontend Engineer</h4>
@@ -144,7 +144,7 @@ export function Dashboard() {
             </div>
             
             <div 
-              className="bg-surface-container-lowest border border-outline-variant rounded-md p-md shadow-sm hover:shadow-md hover:border-primary transition-all cursor-pointer border-t-4 border-t-primary flex flex-col min-h-[120px]"
+              className="bg-surface-container-lowest border border-outline-variant rounded-md p-md shadow-sm hover:shadow-md hover:border-primary transition-all cursor-pointer border-t-4 border-t-primary flex flex-col min-h-30"
             >
               <div className="flex justify-between items-start mb-sm">
                 <h4 className="text-sm font-medium text-on-surface leading-tight">Senior Product Designer</h4>
@@ -167,7 +167,7 @@ export function Dashboard() {
         </div>
         
         {/* Column: Oferta */}
-        <div className="flex flex-col w-[320px] h-full rounded-lg bg-surface-container-low border border-outline-variant overflow-hidden">
+        <div className="flex flex-col w-80 h-full rounded-lg bg-surface-container-low border border-outline-variant overflow-hidden">
           <div className="px-md py-sm border-b border-outline-variant bg-surface flex justify-between items-center shrink-0">
             <h3 className="text-xs font-semibold text-on-surface uppercase tracking-wide">Oferta</h3>
             <span className="bg-surface-container-high text-on-surface-variant px-2 py-0.5 rounded-full text-xs font-semibold">0</span>

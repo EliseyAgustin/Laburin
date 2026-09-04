@@ -11,7 +11,7 @@ export function AppLayout() {
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       <Sidebar />
-      <div className="flex-1 flex flex-col ml-[240px] w-[calc(100%-240px)] h-screen overflow-hidden relative">
+      <div className="flex-1 flex flex-col ml-60 w-[calc(100%-240px)] h-screen overflow-hidden relative">
         <Topbar title={topbarTitle} />
         <main className="flex-1 overflow-auto pt-16 h-full">
           <Outlet />

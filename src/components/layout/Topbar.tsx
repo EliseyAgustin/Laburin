@@ -6,7 +6,7 @@ interface TopbarProps {
 
 export function Topbar({ title }: TopbarProps) {
   return (
-    <header className="fixed top-0 right-0 z-30 bg-background border-b border-outline-variant flex justify-between items-center w-full h-16 px-6 ml-[240px] max-w-[calc(100%-240px)] shrink-0">
+    <header className="fixed top-0 right-0 z-30 bg-background border-b border-outline-variant flex justify-between items-center w-full h-16 px-6 ml-60 max-w-[calc(100%-240px)] shrink-0">
       <div className="flex items-center flex-1">
         {title ? (
            <h2 className="text-xl font-semibold text-primary hidden md:block">{title}</h2>

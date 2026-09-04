@@ -3,7 +3,7 @@ import { Save, Timer, Terminal, Briefcase, MapPin, Plus, Trash2 } from 'lucide-r
 export function Settings() {
   return (
     <div className="flex-1 overflow-y-auto p-margin min-h-full">
-      <div className="max-w-[1280px] mx-auto flex flex-col gap-6 pb-6">
+      <div className="max-w-7xl mx-auto flex flex-col gap-6 pb-6">
         
         {/* Page Header & Global Action */}
         <div className="flex justify-between items-end pb-2 border-b border-outline-variant">
@@ -12,7 +12,7 @@ export function Settings() {
             <p className="text-base text-on-surface-variant mt-1">Ajusta los pesos y criterios para la evaluación automática de candidatos.</p>
           </div>
           <button className="bg-primary text-on-primary text-sm font-medium px-6 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2">
-            <Save className="w-[18px] h-[18px]" />
+            <Save className="w-4.5 h-4.5" />
             Guardar configuración
           </button>
         </div>
@@ -42,7 +42,7 @@ export function Settings() {
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
           
           {/* STACK: Keywords & Weights */}
-          <section className="xl:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex flex-col h-[500px]">
+          <section className="xl:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex flex-col h-125">
             <div className="p-6 border-b border-outline-variant flex justify-between items-center bg-surface rounded-t-xl">
               <div className="flex items-center gap-2">
                 <Terminal className="w-6 h-6 text-primary" />
@@ -80,7 +80,7 @@ export function Settings() {
                   </div>
                   <div className="col-span-1 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
                     <button className="text-error hover:bg-error-container p-1 rounded-md transition-colors">
-                      <Trash2 className="w-[18px] h-[18px]" />
+                      <Trash2 className="w-4.5 h-4.5" />
                     </button>
                   </div>
                 </div>
