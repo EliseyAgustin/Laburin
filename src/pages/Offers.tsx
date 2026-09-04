@@ -37,7 +37,7 @@ export function Offers() {
           </div>
           
           <div className="w-50">
-            <label className="block text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider flex justify-between">
+            <label className="text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider flex justify-between">
               <span>Score Mínimo</span>
               <span className="text-primary font-bold">75+</span>
             </label>
