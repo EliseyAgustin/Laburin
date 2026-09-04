@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MoreHorizontal, Clock, Inbox } from 'lucide-react';
-import { ApplicationDetailPanel } from '@/src/components/ApplicationDetailPanel';
+import { ApplicationDetailPanel } from '@/components/ApplicationDetailPanel';
 
 export function Dashboard() {
   const [selectedApplication, setSelectedApplication] = useState<string | null>(null);
