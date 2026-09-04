@@ -1,6 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import { Briefcase, LayoutDashboard, BarChart2, Settings, LogOut } from 'lucide-react';
-import { cn } from '@/src/lib/utils';
+import { cn } from '@/lib/utils';
 
 const navItems = [
   { icon: Briefcase, label: 'Ofertas', path: '/ofertas' },
