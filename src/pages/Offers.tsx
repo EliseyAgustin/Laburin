@@ -3,11 +3,11 @@ import { Filter, MapPin, Clock, Building2, ExternalLink, BookmarkPlus } from 'lu
 export function Offers() {
   return (
     <div className="flex-1 overflow-y-auto bg-surface-container-lowest p-margin h-full">
-      <div className="max-w-[1280px] mx-auto">
+      <div className="max-w-7xl mx-auto">
         
         {/* Filters Row */}
         <div className="flex flex-wrap items-center gap-md mb-xl p-4 bg-surface rounded-xl border border-outline-variant shadow-sm">
-          <div className="flex-1 min-w-[200px]">
+          <div className="flex-1 min-w-50">
             <label className="block text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Categoría</label>
             <select className="w-full bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg p-2 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none">
               <option>Todas las categorías</option>
@@ -18,7 +18,7 @@ export function Offers() {
             </select>
           </div>
           
-          <div className="flex-1 min-w-[150px]">
+          <div className="flex-1 min-w-37.5">
             <label className="block text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Fuente</label>
             <select className="w-full bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg p-2 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none">
               <option>Todas las fuentes</option>
@@ -28,15 +28,15 @@ export function Offers() {
             </select>
           </div>
           
-          <div className="flex-1 min-w-[150px]">
+          <div className="flex-1 min-w-37.5">
             <label className="block text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Ubicación</label>
             <div className="relative">
-              <MapPin className="absolute left-2 top-2 text-on-surface-variant w-[18px] h-[18px]" />
+              <MapPin className="absolute left-2 top-2 text-on-surface-variant w-4.5 h-4.5" />
               <input type="text" placeholder="Ciudad o País" className="w-full bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-2 pl-8 pr-2 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none" />
             </div>
           </div>
           
-          <div className="w-[200px]">
+          <div className="w-50">
             <label className="block text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider flex justify-between">
               <span>Score Mínimo</span>
               <span className="text-primary font-bold">75+</span>
@@ -46,7 +46,7 @@ export function Offers() {
           
           <div className="mt-5">
             <button className="bg-surface-container-high text-on-surface text-xs font-medium px-4 py-2 rounded-lg border border-outline-variant flex items-center gap-2 hover:bg-surface-variant transition-colors">
-              <Filter className="w-[18px] h-[18px]" />
+              <Filter className="w-4.5 h-4.5" />
               Aplicar
             </button>
           </div>

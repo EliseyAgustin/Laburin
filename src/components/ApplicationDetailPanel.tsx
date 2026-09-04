@@ -15,7 +15,7 @@ export function ApplicationDetailPanel({ isOpen, onClose, applicationId }: Panel
 
   return (
     <aside className={cn(
-      "absolute right-0 top-0 h-full w-[520px] bg-surface-container-lowest border-l border-outline-variant shadow-[0_0_40px_rgba(0,0,0,0.1)] z-50 flex flex-col transform transition-transform duration-300",
+      "absolute right-0 top-0 h-full w-130 bg-surface-container-lowest border-l border-outline-variant shadow-[0_0_40px_rgba(0,0,0,0.1)] z-50 flex flex-col transform transition-transform duration-300",
       isOpen ? "translate-x-0" : "translate-x-full"
     )}>
       {/* Panel Header */}
@@ -28,7 +28,7 @@ export function ApplicationDetailPanel({ isOpen, onClose, applicationId }: Panel
           </div>
           <h2 className="text-2xl font-semibold text-on-surface mb-1">Senior Frontend Engineer</h2>
           <div className="flex items-center gap-2 text-on-surface-variant text-sm">
-            <Building2 className="w-[18px] h-[18px]" />
+            <Building2 className="w-4.5 h-4.5" />
             <span>Stripe</span>
             <span className="w-1 h-1 rounded-full bg-outline-variant mx-1"></span>
             <a href="#" className="text-primary hover:underline flex items-center gap-1 group">
@@ -88,12 +88,12 @@ export function ApplicationDetailPanel({ isOpen, onClose, applicationId }: Panel
             <h3 className="text-xl font-semibold text-on-surface">Timeline de Interacciones</h3>
           </div>
           
-          <div className="ml-[19px] border-l border-outline-variant space-y-6 pb-4">
+          <div className="ml-4.75 border-l border-outline-variant space-y-6 pb-4">
             
             {/* Node 1 */}
             <div className="relative pl-6 group">
-              <div className="absolute left-[-17px] top-0 bg-surface-container-lowest border border-primary rounded-full p-1 text-primary shadow-sm">
-                <Code className="w-[18px] h-[18px]" />
+              <div className="absolute -left-4.25 top-0 bg-surface-container-lowest border border-primary rounded-full p-1 text-primary shadow-sm">
+                <Code className="w-4.5 h-4.5" />
               </div>
               <div className="text-[11px] font-semibold text-on-surface-variant mb-0.5">Hoy, 14:30 hs</div>
               <div className="bg-surface border border-outline-variant rounded-lg p-4 group-hover:border-primary-fixed-dim transition-colors shadow-sm">
@@ -104,8 +104,8 @@ export function ApplicationDetailPanel({ isOpen, onClose, applicationId }: Panel
             
             {/* Node 2 */}
             <div className="relative pl-6 group">
-              <div className="absolute left-[-17px] top-0 bg-surface-container-lowest border border-outline-variant rounded-full p-1 text-on-surface-variant shadow-sm">
-                <Video className="w-[18px] h-[18px]" />
+              <div className="absolute -left-4.25 top-0 bg-surface-container-lowest border border-outline-variant rounded-full p-1 text-on-surface-variant shadow-sm">
+                <Video className="w-4.5 h-4.5" />
               </div>
               <div className="text-[11px] font-semibold text-on-surface-variant mb-0.5">Hace 14 días</div>
               <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 group-hover:border-outline transition-colors">
@@ -116,8 +116,8 @@ export function ApplicationDetailPanel({ isOpen, onClose, applicationId }: Panel
 
             {/* Node 3 */}
             <div className="relative pl-6 group">
-              <div className="absolute left-[-17px] top-0 bg-surface-container-lowest border border-outline-variant rounded-full p-1 text-on-surface-variant shadow-sm">
-                <Send className="w-[18px] h-[18px]" />
+              <div className="absolute -left-4.25 top-0 bg-surface-container-lowest border border-outline-variant rounded-full p-1 text-on-surface-variant shadow-sm">
+                <Send className="w-4.5 h-4.5" />
               </div>
               <div className="text-[11px] font-semibold text-on-surface-variant mb-0.5">Hace 20 días</div>
               <div className="text-sm font-semibold text-on-surface">Postulación enviada</div>

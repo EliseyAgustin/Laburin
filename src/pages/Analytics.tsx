@@ -30,7 +30,7 @@ const categoryData = [
 export function Analytics() {
   return (
     <div className="flex-1 overflow-y-auto p-margin h-full bg-background">
-      <div className="max-w-[1280px] mx-auto space-y-6">
+      <div className="max-w-7xl mx-auto space-y-6">
         <h2 className="text-4xl font-bold tracking-tight text-on-background mb-8">Analytics</h2>
         
         {/* KPI Cards */}
@@ -92,7 +92,7 @@ export function Analytics() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* Funnel Chart */}
-          <div className="lg:col-span-2 bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col h-[400px]">
+          <div className="lg:col-span-2 bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col h-100">
             <div className="mb-4">
               <h3 className="text-xl font-semibold text-on-surface">Progresión del Kanban</h3>
               <p className="text-sm text-on-surface-variant">Tasa de conversión por etapa del proceso</p>
@@ -119,7 +119,7 @@ export function Analytics() {
           </div>
           
           {/* Bar Chart */}
-          <div className="lg:col-span-1 bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col h-[400px]">
+          <div className="lg:col-span-1 bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col h-100">
             <div className="mb-4">
               <h3 className="text-xl font-semibold text-on-surface">Volumen por Categoría</h3>
               <p className="text-sm text-on-surface-variant">Ofertas guardadas por área</p>

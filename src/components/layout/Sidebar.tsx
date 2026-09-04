@@ -11,7 +11,7 @@ const navItems = [
 
 export function Sidebar() {
   return (
-    <aside className="fixed h-screen w-[240px] left-0 top-0 bg-surface border-r border-outline-variant flex flex-col py-md px-sm z-40">
+    <aside className="fixed h-screen w-60 left-0 top-0 bg-surface border-r border-outline-variant flex flex-col py-md px-sm z-40">
       {/* Header */}
       <div className="px-sm mb-xl flex flex-col gap-sm mt-sm">
         <div className="flex items-center gap-sm">
