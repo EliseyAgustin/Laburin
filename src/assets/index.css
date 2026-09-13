@@ -1,41 +1,49 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #f9f9ff;
-  --color-on-background: #141b2b;
-  --color-surface: #f9f9ff;
-  --color-surface-dim: #d3daef;
-  --color-surface-bright: #f9f9ff;
+  --color-background: #f6f7fb;
+  --color-on-background: #12172b;
+  --color-surface: #ffffff;
+  --color-surface-dim: #d7dcea;
+  --color-surface-bright: #f6f7fb;
   --color-surface-container-lowest: #ffffff;
-  --color-surface-container-low: #f1f3ff;
-  --color-surface-container: #e9edff;
-  --color-surface-container-high: #e1e8fd;
-  --color-surface-container-highest: #dce2f7;
-  --color-on-surface: #141b2b;
-  --color-on-surface-variant: #424754;
-  --color-outline: #727785;
-  --color-outline-variant: #c2c6d6;
-  --color-primary: #0058be;
+  --color-surface-container-low: #eef1f8;
+  --color-surface-container: #e4e9f5;
+  --color-surface-container-high: #dbe1f0;
+  --color-surface-container-highest: #d2d9ea;
+  --color-on-surface: #12172b;
+  --color-on-surface-variant: #4b5468;
+  --color-outline: #6b7386;
+  --color-outline-variant: #d7dcea;
+  --color-primary: #1e4fd8;
   --color-on-primary: #ffffff;
-  --color-primary-container: #2170e4;
-  --color-on-primary-container: #fefcff;
-  --color-primary-fixed: #d8e2ff;
-  --color-primary-fixed-dim: #adc6ff;
-  --color-on-primary-fixed: #001a42;
-  --color-on-primary-fixed-variant: #004395;
+  --color-primary-container: #dee7ff;
+  --color-on-primary-container: #0e2e86;
+  --color-primary-fixed: #dee7ff;
+  --color-primary-fixed-dim: #b7c9ff;
+  --color-on-primary-fixed: #0e2e86;
+  --color-on-primary-fixed-variant: #123b9e;
   --color-secondary: #585f6c;
   --color-on-secondary: #ffffff;
   --color-secondary-container: #dce2f3;
-  --color-on-secondary-container: #5e6572;
+  --color-on-secondary-container: #434a58;
   --color-tertiary: #924700;
   --color-on-tertiary: #ffffff;
-  --color-tertiary-container: #b75b00;
-  --color-on-tertiary-container: #fffbff;
-  --color-error: #ba1a1a;
+  --color-tertiary-container: #ffdcc2;
+  --color-on-tertiary-container: #6c3400;
+  --color-success: #157f3c;
+  --color-on-success: #ffffff;
+  --color-success-container: #e3f6ea;
+  --color-on-success-container: #0b5c2a;
+  --color-warning: #92400e;
+  --color-on-warning: #ffffff;
+  --color-warning-container: #fdecc8;
+  --color-on-warning-container: #7a3705;
+  --color-error: #b3261e;
   --color-on-error: #ffffff;
-  --color-error-container: #ffdad6;
-  --color-on-error-container: #93000a;
-  
+  --color-error-container: #fbe9e7;
+  --color-on-error-container: #7e1610;
+
   --spacing-unit: 4px;
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -46,11 +54,109 @@
   --spacing-margin: 24px;
 
   --font-sans: "Inter", sans-serif;
-  
+  --font-heading: "Lexend", "Inter", sans-serif;
+
   --radius-sm: 0.25rem;
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
+}
+
+/*
+ * Modo oscuro: mismos tokens, valores distintos.
+ * - Sin atributo data-theme -> sigue prefers-color-scheme del SO.
+ * - data-theme="dark"/"light" -> elección explícita del usuario, gana siempre.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-background: #0b0e1a;
+    --color-on-background: #e7eaf6;
+    --color-surface: #10162a;
+    --color-surface-dim: #0b0e1a;
+    --color-surface-bright: #161d33;
+    --color-surface-container-lowest: #0b0e1a;
+    --color-surface-container-low: #161d33;
+    --color-surface-container: #1d253e;
+    --color-surface-container-high: #242d4a;
+    --color-surface-container-highest: #2b3556;
+    --color-on-surface: #e7eaf6;
+    --color-on-surface-variant: #a7afc7;
+    --color-outline: #7d84a0;
+    --color-outline-variant: #2a3350;
+    --color-primary: #7da2ff;
+    --color-on-primary: #0b1b4d;
+    --color-primary-container: #1e2f63;
+    --color-on-primary-container: #c7d5ff;
+    --color-primary-fixed: #1e2f63;
+    --color-primary-fixed-dim: #7da2ff;
+    --color-on-primary-fixed: #c7d5ff;
+    --color-on-primary-fixed-variant: #afc4ff;
+    --color-secondary: #b7bfd9;
+    --color-on-secondary: #262e45;
+    --color-secondary-container: #3a4260;
+    --color-on-secondary-container: #dbe1f5;
+    --color-tertiary: #ffb787;
+    --color-on-tertiary: #4a2400;
+    --color-tertiary-container: #6c3400;
+    --color-on-tertiary-container: #ffdcc2;
+    --color-success: #34d399;
+    --color-on-success: #063821;
+    --color-success-container: #113b26;
+    --color-on-success-container: #b9f5d0;
+    --color-warning: #fbbf24;
+    --color-on-warning: #3a2a0a;
+    --color-warning-container: #3a2a0a;
+    --color-on-warning-container: #fde7b0;
+    --color-error: #f2726b;
+    --color-on-error: #3b1412;
+    --color-error-container: #3b1412;
+    --color-on-error-container: #ffd9d6;
+  }
+}
+
+:root[data-theme="dark"] {
+  --color-background: #0b0e1a;
+  --color-on-background: #e7eaf6;
+  --color-surface: #10162a;
+  --color-surface-dim: #0b0e1a;
+  --color-surface-bright: #161d33;
+  --color-surface-container-lowest: #0b0e1a;
+  --color-surface-container-low: #161d33;
+  --color-surface-container: #1d253e;
+  --color-surface-container-high: #242d4a;
+  --color-surface-container-highest: #2b3556;
+  --color-on-surface: #e7eaf6;
+  --color-on-surface-variant: #a7afc7;
+  --color-outline: #7d84a0;
+  --color-outline-variant: #2a3350;
+  --color-primary: #7da2ff;
+  --color-on-primary: #0b1b4d;
+  --color-primary-container: #1e2f63;
+  --color-on-primary-container: #c7d5ff;
+  --color-primary-fixed: #1e2f63;
+  --color-primary-fixed-dim: #7da2ff;
+  --color-on-primary-fixed: #c7d5ff;
+  --color-on-primary-fixed-variant: #afc4ff;
+  --color-secondary: #b7bfd9;
+  --color-on-secondary: #262e45;
+  --color-secondary-container: #3a4260;
+  --color-on-secondary-container: #dbe1f5;
+  --color-tertiary: #ffb787;
+  --color-on-tertiary: #4a2400;
+  --color-tertiary-container: #6c3400;
+  --color-on-tertiary-container: #ffdcc2;
+  --color-success: #34d399;
+  --color-on-success: #063821;
+  --color-success-container: #113b26;
+  --color-on-success-container: #b9f5d0;
+  --color-warning: #fbbf24;
+  --color-on-warning: #3a2a0a;
+  --color-warning-container: #3a2a0a;
+  --color-on-warning-container: #fde7b0;
+  --color-error: #f2726b;
+  --color-on-error: #3b1412;
+  --color-error-container: #3b1412;
+  --color-on-error-container: #ffd9d6;
 }
 
 @layer base {

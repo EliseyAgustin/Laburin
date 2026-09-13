@@ -1,6 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export function Login() {
   const navigate = useNavigate();
@@ -44,13 +45,14 @@ export function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface p-margin">
+    <div className="min-h-screen flex items-center justify-center bg-surface p-margin relative">
+      <ThemeToggle className="absolute top-6 right-6" />
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-96 bg-surface-container-lowest border border-outline-variant rounded-xl p-8 shadow-sm flex flex-col gap-5"
       >
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-on-surface">Laburin</h1>
+          <h1 className="text-2xl font-heading font-bold tracking-tight text-on-surface">Laburin</h1>
           <p className="text-sm text-on-surface-variant mt-1">
             {mode === 'login' ? 'Iniciá sesión para ver tu tablero.' : 'Creá tu cuenta para empezar.'}
           </p>
