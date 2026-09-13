@@ -6,7 +6,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppLayout } from './components/layout/AppLayout';
 import { ProtectedRoute } from './components/ProtectedRoute';
-import { OnboardingGuard } from './components/OnboardingGuard';
 import { AuthProvider } from './hooks/useAuth';
 import { ThemeProvider } from './hooks/useTheme';
 import { OnboardingProvider } from './hooks/useOnboarding';
@@ -38,9 +37,7 @@ export default function App() {
               <Route
                 element={
                   <ProtectedRoute>
-                    <OnboardingGuard>
-                      <AppLayout />
-                    </OnboardingGuard>
+                    <AppLayout />
                   </ProtectedRoute>
                 }
               >
