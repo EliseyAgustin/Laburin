@@ -1,10 +1,85 @@
-import { Filter, MapPin, Clock, Building2, ExternalLink, BookmarkPlus } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Filter, MapPin, Clock, Building2, Pencil, Trash2, Plus, Inbox } from 'lucide-react';
+import { OfertaFormModal } from '@/components/OfertaFormModal';
+import { crearOferta, actualizarOferta, eliminarOferta, listarOfertas } from '@/services/ofertas';
+import type { Oferta, OfertaInput } from '@/types/oferta';
+
+const MODALIDAD_LABEL: Record<string, string> = {
+  remoto: 'Remoto',
+  hibrido: 'Híbrido',
+  presencial: 'Presencial',
+};
+
+function scoreBandClasses(score: number | null) {
+  if (score === null) return 'bg-surface-container-low text-on-surface-variant border-outline-variant';
+  if (score >= 75) return 'bg-success-container text-on-success-container border-success';
+  if (score >= 50) return 'bg-warning-container text-on-warning-container border-warning';
+  return 'bg-error-container text-on-error-container border-error';
+}
+
+function scoreBorderClasses(score: number | null) {
+  if (score === null) return 'border-t-outline-variant';
+  if (score >= 75) return 'border-t-success';
+  if (score >= 50) return 'border-t-warning';
+  return 'border-t-error';
+}
 
 export function Offers() {
+  const [ofertas, setOfertas] = useState<Oferta[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingOferta, setEditingOferta] = useState<Oferta | null>(null);
+
+  useEffect(() => {
+    refetch();
+  }, []);
+
+  async function refetch() {
+    setLoading(true);
+    try {
+      const data = await listarOfertas();
+      setOfertas(data);
+      setLoadError(null);
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : 'No se pudieron cargar las ofertas.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function openCreateForm() {
+    setEditingOferta(null);
+    setFormOpen(true);
+  }
+
+  function openEditForm(oferta: Oferta) {
+    setEditingOferta(oferta);
+    setFormOpen(true);
+  }
+
+  async function handleSubmit(input: OfertaInput) {
+    if (editingOferta) {
+      const updated = await actualizarOferta(editingOferta.id, input);
+      setOfertas((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+    } else {
+      const created = await crearOferta(input);
+      setOfertas((prev) => [created, ...prev]);
+    }
+    setFormOpen(false);
+    setEditingOferta(null);
+  }
+
+  async function handleDelete(oferta: Oferta) {
+    if (!window.confirm(`¿Eliminar la oferta "${oferta.rol}" en ${oferta.empresa}?`)) return;
+    await eliminarOferta(oferta.id);
+    setOfertas((prev) => prev.filter((o) => o.id !== oferta.id));
+  }
+
   return (
     <div className="flex-1 overflow-y-auto bg-surface-container-lowest p-margin h-full">
       <div className="max-w-7xl mx-auto">
-        
+
         {/* Filters Row */}
         <div className="flex flex-wrap items-center gap-md mb-xl p-4 bg-surface rounded-xl border border-outline-variant shadow-sm">
           <div className="flex-1 min-w-50">
@@ -17,7 +92,7 @@ export function Offers() {
               <option>Data Analyst</option>
             </select>
           </div>
-          
+
           <div className="flex-1 min-w-37.5">
             <label className="block text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Fuente</label>
             <select className="w-full bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg p-2 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none">
@@ -27,7 +102,7 @@ export function Offers() {
               <option>Glassdoor</option>
             </select>
           </div>
-          
+
           <div className="flex-1 min-w-37.5">
             <label className="block text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Ubicación</label>
             <div className="relative">
@@ -35,7 +110,7 @@ export function Offers() {
               <input type="text" placeholder="Ciudad o País" className="w-full bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-2 pl-8 pr-2 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none" />
             </div>
           </div>
-          
+
           <div className="w-50">
             <label className="text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider flex justify-between">
               <span>Score Mínimo</span>
@@ -43,164 +118,115 @@ export function Offers() {
             </label>
             <input type="range" min="0" max="100" defaultValue="75" className="w-full accent-primary" />
           </div>
-          
+
           <div className="mt-5">
-            <button className="bg-surface-container-high text-on-surface text-xs font-medium px-4 py-2 rounded-lg border border-outline-variant flex items-center gap-2 hover:bg-surface-variant transition-colors">
+            <button className="bg-surface-container-high text-on-surface text-xs font-medium px-4 py-2 rounded-lg border border-outline-variant flex items-center gap-2 hover:bg-surface-variant transition-colors cursor-pointer">
               <Filter className="w-4.5 h-4.5" />
               Aplicar
             </button>
           </div>
         </div>
 
-        {/* Bento Grid for Job Offers */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          
-          {/* Card 1: High Score */}
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:shadow-md hover:border-primary transition-all group flex flex-col h-full border-t-4 border-t-success">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex-1 pr-4">
-                <h3 className="text-lg font-semibold leading-tight text-on-surface mb-1 group-hover:text-primary transition-colors">Senior QA Automation Engineer</h3>
-                <div className="flex items-center gap-2 text-on-surface-variant text-[13px]">
-                  <Building2 className="w-4 h-4" />
-                  <span>TechCorp Global</span>
-                </div>
-              </div>
-              <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-semibold bg-success-container text-on-success-container border border-success shrink-0">
-                92
-              </div>
-            </div>
-            
-            <div className="flex flex-wrap gap-2 mb-6">
-              <span className="bg-surface-container-low text-on-surface-variant px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 border border-outline-variant">
-                <MapPin className="w-3.5 h-3.5" /> Remoto
-              </span>
-              <span className="bg-surface-container-low text-on-surface-variant px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 border border-outline-variant">
-                <Clock className="w-3.5 h-3.5" /> Full-time
-              </span>
-              <span className="bg-surface-container-low text-on-surface-variant px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 border border-outline-variant">
-                LinkedIn
-              </span>
-            </div>
-            
-            <div className="mt-auto pt-4 border-t border-outline-variant flex justify-between items-center">
-              <span className="text-on-surface-variant text-[11px] font-semibold">hace 2 horas</span>
-              <button className="bg-surface-container-lowest border border-outline-variant text-on-surface hover:bg-primary hover:text-on-primary hover:border-primary px-4 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-2">
-                <BookmarkPlus className="w-4 h-4" />
-                Trackear postulación
-              </button>
-            </div>
-          </div>
-
-          {/* Card 2: Medium Score */}
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:shadow-md hover:border-primary transition-all group flex flex-col h-full border-t-4 border-t-warning">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex-1 pr-4">
-                <h3 className="text-lg font-semibold leading-tight text-on-surface mb-1 group-hover:text-primary transition-colors">Data Analyst Mid-Level</h3>
-                <div className="flex items-center gap-2 text-on-surface-variant text-[13px]">
-                  <Building2 className="w-4 h-4" />
-                  <span>Fintech Solutions SAS</span>
-                </div>
-              </div>
-              <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-semibold bg-warning-container text-on-warning-container border border-warning shrink-0">
-                68
-              </div>
-            </div>
-            
-            <div className="flex flex-wrap gap-2 mb-6">
-              <span className="bg-surface-container-low text-on-surface-variant px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 border border-outline-variant">
-                <MapPin className="w-3.5 h-3.5" /> Híbrido (Bs As)
-              </span>
-              <span className="bg-surface-container-low text-on-surface-variant px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 border border-outline-variant">
-                <Clock className="w-3.5 h-3.5" /> Full-time
-              </span>
-              <span className="bg-surface-container-low text-on-surface-variant px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 border border-outline-variant">
-                Indeed
-              </span>
-            </div>
-            
-            <div className="mt-auto pt-4 border-t border-outline-variant flex justify-between items-center">
-              <span className="text-on-surface-variant text-[11px] font-semibold">hace 5 horas</span>
-              <button className="bg-surface-container-lowest border border-outline-variant text-on-surface hover:bg-primary hover:text-on-primary hover:border-primary px-4 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-2">
-                <BookmarkPlus className="w-4 h-4" />
-                Trackear postulación
-              </button>
-            </div>
-          </div>
-
-          {/* Card 3: Low Score */}
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:shadow-md hover:border-primary transition-all group flex flex-col h-full border-t-4 border-t-error">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex-1 pr-4">
-                <h3 className="text-lg font-semibold leading-tight text-on-surface mb-1 group-hover:text-primary transition-colors">Data Entry Junior</h3>
-                <div className="flex items-center gap-2 text-on-surface-variant text-[13px]">
-                  <Building2 className="w-4 h-4" />
-                  <span>Agencia Gamma</span>
-                </div>
-              </div>
-              <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-semibold bg-error-container text-on-error-container border border-error shrink-0">
-                42
-              </div>
-            </div>
-            
-            <div className="flex flex-wrap gap-2 mb-6">
-              <span className="bg-surface-container-low text-on-surface-variant px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 border border-outline-variant">
-                <MapPin className="w-3.5 h-3.5" /> Presencial
-              </span>
-              <span className="bg-surface-container-low text-on-surface-variant px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 border border-outline-variant">
-                <Clock className="w-3.5 h-3.5" /> Part-time
-              </span>
-              <span className="bg-surface-container-low text-on-surface-variant px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 border border-outline-variant">
-                LinkedIn
-              </span>
-            </div>
-            
-            <div className="mt-auto pt-4 border-t border-outline-variant flex justify-between items-center">
-              <span className="text-on-surface-variant text-[11px] font-semibold">hace 1 día</span>
-              <button className="bg-surface-container-lowest border border-outline-variant text-on-surface hover:bg-primary hover:text-on-primary hover:border-primary px-4 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-2">
-                <BookmarkPlus className="w-4 h-4" />
-                Trackear postulación
-              </button>
-            </div>
-          </div>
-          
-          {/* Card 4: High Score */}
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:shadow-md hover:border-primary transition-all group flex flex-col h-full border-t-4 border-t-success">
-            <div className="flex justify-between items-start mb-4">
-              <div className="flex-1 pr-4">
-                <h3 className="text-lg font-semibold leading-tight text-on-surface mb-1 group-hover:text-primary transition-colors">Administrativo Contable Ssr</h3>
-                <div className="flex items-center gap-2 text-on-surface-variant text-[13px]">
-                  <Building2 className="w-4 h-4" />
-                  <span>Grupo Retail SA</span>
-                </div>
-              </div>
-              <div className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-semibold bg-success-container text-on-success-container border border-success shrink-0">
-                88
-              </div>
-            </div>
-            
-            <div className="flex flex-wrap gap-2 mb-6">
-              <span className="bg-surface-container-low text-on-surface-variant px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 border border-outline-variant">
-                <MapPin className="w-3.5 h-3.5" /> Híbrido (Córdoba)
-              </span>
-              <span className="bg-surface-container-low text-on-surface-variant px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 border border-outline-variant">
-                <Clock className="w-3.5 h-3.5" /> Full-time
-              </span>
-              <span className="bg-surface-container-low text-on-surface-variant px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 border border-outline-variant">
-                Manual
-              </span>
-            </div>
-            
-            <div className="mt-auto pt-4 border-t border-outline-variant flex justify-between items-center">
-              <span className="text-on-surface-variant text-[11px] font-semibold">hace 3 horas</span>
-              <button className="bg-surface-container-lowest border border-outline-variant text-on-surface hover:bg-primary hover:text-on-primary hover:border-primary px-4 py-1.5 rounded-lg text-xs font-medium transition-all flex items-center gap-2">
-                <BookmarkPlus className="w-4 h-4" />
-                Trackear postulación
-              </button>
-            </div>
-          </div>
-
+        <div className="flex justify-end mb-lg">
+          <button
+            onClick={openCreateForm}
+            className="bg-primary text-on-primary text-sm font-medium px-5 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer"
+          >
+            <Plus className="w-4.5 h-4.5" />
+            Nueva oferta
+          </button>
         </div>
+
+        {loadError && (
+          <div className="mb-lg p-4 bg-error-container text-on-error-container rounded-lg text-sm">
+            {loadError}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="text-center text-on-surface-variant text-sm py-16">Cargando ofertas…</div>
+        ) : ofertas.length === 0 ? (
+          <div className="flex flex-col items-center justify-center text-outline-variant py-24 gap-2">
+            <Inbox className="w-12 h-12" />
+            <p className="text-sm font-medium text-on-surface-variant">Todavía no cargaste ninguna oferta.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {ofertas.map((oferta) => (
+              <div
+                key={oferta.id}
+                className={`bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:shadow-md hover:border-primary transition-all group flex flex-col h-full border-t-4 ${scoreBorderClasses(oferta.puntaje_scoring)}`}
+              >
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1 pr-4">
+                    <h3 className="text-lg font-semibold leading-tight text-on-surface mb-1 group-hover:text-primary transition-colors">{oferta.rol}</h3>
+                    <div className="flex items-center gap-2 text-on-surface-variant text-[13px]">
+                      <Building2 className="w-4 h-4" />
+                      <span>{oferta.empresa}</span>
+                    </div>
+                  </div>
+                  <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-semibold shrink-0 border ${scoreBandClasses(oferta.puntaje_scoring)}`}>
+                    {oferta.puntaje_scoring !== null ? Math.round(oferta.puntaje_scoring) : '—'}
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {oferta.ubicacion && (
+                    <span className="bg-surface-container-low text-on-surface-variant px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 border border-outline-variant">
+                      <MapPin className="w-3.5 h-3.5" /> {oferta.ubicacion}
+                    </span>
+                  )}
+                  {oferta.modalidad && (
+                    <span className="bg-surface-container-low text-on-surface-variant px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 border border-outline-variant">
+                      <Clock className="w-3.5 h-3.5" /> {MODALIDAD_LABEL[oferta.modalidad]}
+                    </span>
+                  )}
+                  {oferta.fuente && (
+                    <span className="bg-surface-container-low text-on-surface-variant px-2 py-1 rounded text-[11px] font-medium flex items-center gap-1 border border-outline-variant">
+                      {oferta.fuente}
+                    </span>
+                  )}
+                  {oferta.stack_tecnologico.map((tech) => (
+                    <span key={tech} className="bg-primary-container text-on-primary-container px-2 py-1 rounded text-[11px] font-medium border border-transparent">
+                      {tech}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="mt-auto pt-4 border-t border-outline-variant flex justify-between items-center">
+                  <span className="text-on-surface-variant text-[11px] font-semibold">
+                    {oferta.fecha_publicacion ?? 'Sin fecha'}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => openEditForm(oferta)}
+                      className="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer"
+                      aria-label="Editar oferta"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(oferta)}
+                      className="p-2 rounded-lg text-error hover:bg-error-container transition-colors cursor-pointer"
+                      aria-label="Eliminar oferta"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
+
+      {formOpen && (
+        <OfertaFormModal
+          oferta={editingOferta}
+          onClose={() => setFormOpen(false)}
+          onSubmit={handleSubmit}
+        />
+      )}
     </div>
   );
 }
