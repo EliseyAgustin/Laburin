@@ -8,7 +8,7 @@ export function Settings() {
         {/* Page Header & Global Action */}
         <div className="flex justify-between items-end pb-2 border-b border-outline-variant">
           <div>
-            <h1 className="text-4xl font-bold tracking-tight text-on-surface">Motor de Scoring</h1>
+            <h1 className="text-4xl font-heading font-bold tracking-tight text-on-surface">Motor de Scoring</h1>
             <p className="text-base text-on-surface-variant mt-1">Ajusta los pesos y criterios para la evaluación automática de candidatos.</p>
           </div>
           <button className="bg-primary text-on-primary text-sm font-medium px-6 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2">
@@ -24,7 +24,7 @@ export function Settings() {
               <Timer className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h3 className="text-xl font-semibold text-on-surface">Umbral de Inactividad</h3>
+              <h3 className="text-xl font-heading font-semibold text-on-surface">Umbral de Inactividad</h3>
               <p className="text-sm text-on-surface-variant">Días antes de considerar una oferta o candidato inactivo.</p>
             </div>
           </div>
@@ -46,7 +46,7 @@ export function Settings() {
             <div className="p-6 border-b border-outline-variant flex justify-between items-center bg-surface rounded-t-xl">
               <div className="flex items-center gap-2">
                 <Terminal className="w-6 h-6 text-primary" />
-                <h2 className="text-xl font-semibold text-on-surface">Stack Tecnológico</h2>
+                <h2 className="text-xl font-heading font-semibold text-on-surface">Stack Tecnológico</h2>
               </div>
               <span className="bg-primary-container text-on-primary-container text-[11px] font-semibold px-2 py-1 rounded-full">Alto Impacto</span>
             </div>
@@ -106,7 +106,7 @@ export function Settings() {
             <section className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm">
               <div className="p-4 border-b border-outline-variant bg-surface rounded-t-xl flex items-center gap-2">
                 <Briefcase className="w-6 h-6 text-tertiary" />
-                <h2 className="text-xl font-semibold text-on-surface">Modalidad</h2>
+                <h2 className="text-xl font-heading font-semibold text-on-surface">Modalidad</h2>
               </div>
               <div className="p-4 flex flex-col gap-4">
                 <div className="flex items-center justify-between p-2 rounded-lg hover:bg-surface-container-low transition-colors">
@@ -148,7 +148,7 @@ export function Settings() {
             <section className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex-1 flex flex-col">
               <div className="p-4 border-b border-outline-variant bg-surface rounded-t-xl flex items-center gap-2">
                 <MapPin className="w-6 h-6 text-secondary" />
-                <h2 className="text-xl font-semibold text-on-surface">Ubicación</h2>
+                <h2 className="text-xl font-heading font-semibold text-on-surface">Ubicación</h2>
               </div>
               <div className="p-4 flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-2">
                 <div className="flex items-center justify-between p-2 rounded-lg border border-outline-variant bg-surface-bright">

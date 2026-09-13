@@ -27,7 +27,7 @@ export function Sidebar() {
           <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-lg shrink-0">
             L
           </div>
-          <div className="font-bold text-xl leading-tight text-primary">Laburin</div>
+          <div className="font-heading font-bold text-xl leading-tight text-primary">Laburin</div>
         </div>
         <div className="text-xs font-medium text-on-surface-variant">Gestión de Empleos</div>
       </div>

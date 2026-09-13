@@ -1,4 +1,5 @@
 import { Search, Plus, Bell, HelpCircle } from 'lucide-react';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface TopbarProps {
   title?: string;
@@ -9,7 +10,7 @@ export function Topbar({ title }: TopbarProps) {
     <header className="fixed top-0 right-0 z-30 bg-background border-b border-outline-variant flex justify-between items-center w-full h-16 px-6 ml-60 max-w-[calc(100%-240px)] shrink-0">
       <div className="flex items-center flex-1">
         {title ? (
-           <h2 className="text-xl font-semibold text-primary hidden md:block">{title}</h2>
+           <h2 className="text-xl font-heading font-semibold text-primary hidden md:block">{title}</h2>
         ) : (
           <div className="relative w-64 hidden md:block group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-on-surface-variant group-focus-within:text-primary transition-colors" />
@@ -27,7 +28,8 @@ export function Topbar({ title }: TopbarProps) {
           <Plus className="w-4 h-4" />
           Cargar oferta manual
         </button>
-        <div className="flex items-center gap-1 border-l border-outline-variant pl-4 ml-2">
+        <div className="flex items-center gap-3 border-l border-outline-variant pl-4 ml-2">
+          <ThemeToggle />
           <button className="p-2 text-on-secondary-container hover:bg-surface-container-low rounded-full transition-all">
             <Bell className="w-5 h-5" />
           </button>

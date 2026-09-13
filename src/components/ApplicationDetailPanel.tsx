@@ -1,4 +1,4 @@
-import { X, Building2, Globe, Code, Video, Send, PlusCircle, ExternalLink } from 'lucide-react';
+import { X, Building2, Globe, Code, Video, Send, PlusCircle, ExternalLink, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 
@@ -23,7 +23,7 @@ export function ApplicationDetailPanel({ isOpen, onClose, applicationId }: Panel
         <div>
           {/* Alert Badge */}
           <div className="inline-flex items-center gap-1 bg-tertiary-container text-on-tertiary-container px-2 py-1 rounded-full mb-4">
-            <span className="material-symbols-outlined text-[14px]">warning</span>
+            <AlertTriangle className="w-3.5 h-3.5" />
             <span className="text-[11px] font-semibold uppercase tracking-wide">Inactiva &gt; 14 días</span>
           </div>
           <h2 className="text-2xl font-semibold text-on-surface mb-1">Senior Frontend Engineer</h2>
@@ -85,7 +85,7 @@ export function ApplicationDetailPanel({ isOpen, onClose, applicationId }: Panel
         {/* Timeline Section */}
         <div>
           <div className="flex items-center justify-between mb-6 border-b border-outline-variant pb-2">
-            <h3 className="text-xl font-semibold text-on-surface">Timeline de Interacciones</h3>
+            <h3 className="text-xl font-heading font-semibold text-on-surface">Timeline de Interacciones</h3>
           </div>
           
           <div className="ml-4.75 border-l border-outline-variant space-y-6 pb-4">
