@@ -1,6 +1,7 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { Briefcase, LayoutDashboard, BarChart2, Settings, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
 
 const navItems = [
   { icon: Briefcase, label: 'Ofertas', path: '/ofertas' },
@@ -10,6 +11,14 @@ const navItems = [
 ];
 
 export function Sidebar() {
+  const navigate = useNavigate();
+  const { signOut } = useAuth();
+
+  async function handleLogout() {
+    await signOut();
+    navigate('/', { replace: true });
+  }
+
   return (
     <aside className="fixed h-screen w-60 left-0 top-0 bg-surface border-r border-outline-variant flex flex-col py-md px-sm z-40">
       {/* Header */}
@@ -46,13 +55,14 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="mt-auto pt-4 border-t border-outline-variant">
-        <NavLink
-          to="/"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors"
+        <button
+          type="button"
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors"
         >
           <LogOut className="w-5 h-5" />
           <span>Cerrar Sesión</span>
-        </NavLink>
+        </button>
       </div>
     </aside>
   );
