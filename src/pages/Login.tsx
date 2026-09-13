@@ -32,11 +32,16 @@ export function Login() {
       return;
     }
 
-    const { error: signUpError } = await signUp(email, password);
+    const { error: signUpError, hasSession } = await signUp(email, password);
     setLoading(false);
 
     if (signUpError) {
       setError(signUpError);
+      return;
+    }
+
+    if (hasSession) {
+      navigate('/onboarding', { replace: true });
       return;
     }
 
