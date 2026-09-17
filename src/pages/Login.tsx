@@ -2,6 +2,7 @@ import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import logoTexto from '@/assets/logo/laburin-logo-texto.svg';
 
 export function Login() {
   const navigate = useNavigate();
@@ -56,8 +57,8 @@ export function Login() {
         onSubmit={handleSubmit}
         className="w-full max-w-96 bg-surface-container-lowest border border-outline-variant rounded-xl p-8 shadow-sm flex flex-col gap-5"
       >
-        <div>
-          <h1 className="text-2xl font-heading font-bold tracking-tight text-on-surface">Laburin</h1>
+        <div className="flex flex-col items-center text-center">
+          <img src={logoTexto} alt="Laburin" className="h-28 w-auto" />
           <p className="text-sm text-on-surface-variant mt-1">
             {mode === 'login' ? 'Iniciá sesión para ver tu tablero.' : 'Creá tu cuenta para empezar.'}
           </p>

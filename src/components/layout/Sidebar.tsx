@@ -2,6 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { Briefcase, LayoutDashboard, BarChart2, Settings, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import logoIcono from '@/assets/logo/laburin-logo-icono.svg';
 
 const navItems = [
   { icon: Briefcase, label: 'Ofertas', path: '/ofertas' },
@@ -24,9 +25,7 @@ export function Sidebar() {
       {/* Header */}
       <div className="px-sm mb-xl flex flex-col gap-sm mt-sm">
         <div className="flex items-center gap-sm">
-          <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold text-lg shrink-0">
-            L
-          </div>
+          <img src={logoIcono} alt="" className="w-8 h-8 rounded-full shrink-0" />
           <div className="font-heading font-bold text-xl leading-tight text-primary">Laburin</div>
         </div>
         <div className="text-xs font-medium text-on-surface-variant">Gestión de Empleos</div>
