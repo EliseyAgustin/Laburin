@@ -1,0 +1,55 @@
+<svg width="280" height="280" viewBox="200 20 280 280" xmlns="http://www.w3.org/2000/svg" role="img">
+<title>Mascota topo de Laburin sin texto</title>
+<desc>Topo con anteojos asomando de un pozo, sosteniendo una pala pequeña y un currículum enrollado, con una sonrisa pícara</desc>
+<defs>
+<clipPath id="c1"><circle cx="340" cy="160" r="130"/></clipPath>
+</defs>
+<style>
+.bg{fill:#1F3864}
+.dirt{fill:#8B5E34}
+.dirt2{fill:#6E4A29}
+.fur{fill:#9B8778}
+.furDark{fill:#7C6A5D}
+.nose{fill:#E8879A}
+.lens{fill:#CDE7F0}
+.paper{fill:#F5EFE3}
+.handle{fill:#C97B3D}
+.blade{fill:#D9DCE1}
+.tooth{fill:#FFFFFF}
+</style>
+
+<circle cx="340" cy="160" r="130" class="bg"/>
+
+<g clip-path="url(#c1)">
+  <ellipse cx="340" cy="270" rx="150" ry="45" class="dirt"/>
+  <ellipse cx="340" cy="255" rx="70" ry="24" class="dirt2"/>
+
+  <ellipse cx="340" cy="185" rx="62" ry="70" class="fur"/>
+  <ellipse cx="340" cy="150" rx="20" ry="12" class="furDark"/>
+
+  <ellipse cx="326" cy="152" rx="15" ry="13" class="lens"/>
+  <ellipse cx="358" cy="152" rx="15" ry="13" class="lens"/>
+  <circle cx="326" cy="152" r="16" fill="none" stroke="#2B2B2B" stroke-width="4"/>
+  <circle cx="358" cy="152" r="16" fill="none" stroke="#2B2B2B" stroke-width="4"/>
+  <line x1="341" y1="152" x2="343" y2="152" stroke="#2B2B2B" stroke-width="4"/>
+
+  <ellipse cx="342" cy="172" rx="10" ry="7" class="nose"/>
+  <path d="M 322 190 Q 342 205 362 190" fill="none" stroke="#5C4A3D" stroke-width="3" stroke-linecap="round"/>
+  <rect x="333" y="192" width="8" height="10" class="tooth" rx="2"/>
+  <rect x="343" y="192" width="8" height="10" class="tooth" rx="2"/>
+
+  <g transform="translate(288,225) rotate(-20)">
+    <rect x="-5" y="-45" width="10" height="60" rx="5" class="handle"/>
+    <path d="M -20 12 Q -24 35 0 40 Q 24 35 20 12 Q 20 2 0 2 Q -20 2 -20 12 Z" class="blade"/>
+  </g>
+
+  <g transform="translate(390,225) rotate(12)">
+    <rect x="-8" y="-30" width="30" height="42" rx="3" class="paper"/>
+    <line x1="-3" y1="-20" x2="17" y2="-20" stroke="#B7AE9B" stroke-width="2"/>
+    <line x1="-3" y1="-12" x2="17" y2="-12" stroke="#B7AE9B" stroke-width="2"/>
+    <line x1="-3" y1="-4" x2="17" y2="-4" stroke="#B7AE9B" stroke-width="2"/>
+  </g>
+</g>
+
+<circle cx="340" cy="160" r="130" fill="none" stroke="#5C80BC" stroke-width="3"/>
+</svg>
