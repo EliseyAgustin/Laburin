@@ -11,7 +11,7 @@ import { ThemeProvider } from './hooks/useTheme';
 import { OnboardingProvider } from './hooks/useOnboarding';
 import { Login } from './pages/Login';
 import { Onboarding } from './pages/Onboarding';
-import { Dashboard } from './pages/Dashboard';
+import { Tablero } from './pages/Tablero';
 import { Offers } from './pages/Offers';
 import { Analytics } from './pages/Analytics';
 import { Settings } from './pages/Settings';
@@ -41,7 +41,7 @@ export default function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route path="/tablero" element={<Dashboard />} />
+                <Route path="/tablero" element={<Tablero />} />
                 <Route path="/ofertas" element={<Offers />} />
                 <Route path="/analytics" element={<Analytics />} />
                 <Route path="/configuracion" element={<Settings />} />

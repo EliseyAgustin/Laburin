@@ -15,8 +15,9 @@ values
    'Modalidad remota', 10, 'exacto', 'modalidad', 'remoto', null, null, true),
   ('21111111-1111-1111-1111-111111111103', '0a161863-5e8f-456f-b5ed-b0256b0d5768',
    'Zona oeste / Castelar', 25, 'contiene', 'ubicacion', 'castelar', null, null, true),
-  ('21111111-1111-1111-1111-111111111104', '0a161863-5e8f-456f-b5ed-b0256b0d5768',
-   'Antigüedad de publicación (hs)', 15, 'rango_numerico', 'fecha_publicacion', null, 0, 24, true),
+  -- 'Antigüedad de publicación (hs)' (rango_numerico sobre fecha_publicacion, 0-24) se sacó del seed:
+  -- fecha_publicacion es una fecha, no un número crudo, y "recencia" es una regla fija del motor
+  -- (SRS RF-12/RF-13), no un criterio configurable — el criterio nunca iba a matchear de verdad.
   ('21111111-1111-1111-1111-111111111105', '0a161863-5e8f-456f-b5ed-b0256b0d5768',
    'Selenium / Cypress', 5, 'contiene', 'stack_tecnologico', 'selenium', null, null, false);
 
