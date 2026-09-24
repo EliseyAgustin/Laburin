@@ -1,0 +1,26 @@
+name: Supabase keepalive
+
+on:
+  # Pega una query liviana a Supabase cada 3 días: el free tier pausa el proyecto tras 7+ días sin actividad.
+  schedule:
+    - cron: '0 12 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          status=$(curl -s -o /dev/null -w '%{http_code}' \
+            "${SUPABASE_URL%/}/rest/v1/criterios_scoring?select=id&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+          echo "Supabase respondió HTTP ${status}"
+          if [ "${status}" -lt 200 ] || [ "${status}" -ge 300 ]; then
+            echo "::error::Supabase keepalive falló con HTTP ${status}"
+            exit 1
+          fi
