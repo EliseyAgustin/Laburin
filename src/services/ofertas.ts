@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { mensajeDeError } from '@/lib/errores';
 import { calcularScoring, obtenerCriteriosActivos } from '@/services/scoring';
 import type { Oferta, OfertaInput } from '@/types/oferta';
 
@@ -64,4 +65,50 @@ export async function actualizarOferta(id: string, input: Partial<OfertaInput>):
 export async function eliminarOferta(id: string): Promise<void> {
   const { error } = await supabase.from('ofertas').delete().eq('id', id);
   if (error) throw error;
+}
+
+const TAMANO_LOTE_ELIMINACION = 50;
+
+// Borra por lotes para no hacer una request por fila; si un lote falla, reintenta fila por fila
+// para aislar la que falla. Las filas que la base no devuelve como borradas cuentan como fallidas.
+export async function eliminarEnLotes(
+  ids: string[],
+  borrar: (lote: string[]) => Promise<string[]>,
+  tamanoLote = TAMANO_LOTE_ELIMINACION
+): Promise<{ eliminadas: string[]; fallidas: string[]; motivo: string | null }> {
+  const eliminadas: string[] = [];
+  const fallidas: string[] = [];
+  let motivo: string | null = null;
+
+  const registrar = (lote: string[], borradas: string[]) => {
+    eliminadas.push(...borradas);
+    fallidas.push(...lote.filter((id) => !borradas.includes(id)));
+  };
+
+  for (let i = 0; i < ids.length; i += tamanoLote) {
+    const lote = ids.slice(i, i + tamanoLote);
+
+    try {
+      registrar(lote, await borrar(lote));
+    } catch (err) {
+      motivo ??= mensajeDeError(err, 'error desconocido');
+      for (const id of lote) {
+        try {
+          registrar([id], await borrar([id]));
+        } catch {
+          fallidas.push(id);
+        }
+      }
+    }
+  }
+
+  return { eliminadas, fallidas, motivo };
+}
+
+export function eliminarOfertas(ids: string[]) {
+  return eliminarEnLotes(ids, async (lote) => {
+    const { data, error } = await supabase.from('ofertas').delete().in('id', lote).select('id');
+    if (error) throw error;
+    return data.map((fila) => fila.id as string);
+  });
 }
