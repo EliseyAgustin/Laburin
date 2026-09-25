@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type KeyboardEvent } from 'react';
 import { X } from 'lucide-react';
+import { FUENTE_MANUAL } from '@/lib/fuentes';
 import type { Modalidad, Oferta, OfertaInput } from '@/types/oferta';
 
 interface OfertaFormModalProps {
@@ -21,7 +22,6 @@ export function OfertaFormModal({ oferta, onClose, onSubmit }: OfertaFormModalPr
   const [rol, setRol] = useState(oferta?.rol ?? '');
   const [ubicacion, setUbicacion] = useState(oferta?.ubicacion ?? '');
   const [modalidad, setModalidad] = useState<Modalidad | ''>(oferta?.modalidad ?? '');
-  const [fuente, setFuente] = useState(oferta?.fuente ?? '');
   const [fechaPublicacion, setFechaPublicacion] = useState(oferta?.fecha_publicacion ?? '');
   const [stack, setStack] = useState<string[]>(oferta?.stack_tecnologico ?? []);
   const [stackDraft, setStackDraft] = useState('');
@@ -66,7 +66,7 @@ export function OfertaFormModal({ oferta, onClose, onSubmit }: OfertaFormModalPr
         ubicacion: ubicacion.trim() || null,
         modalidad: modalidad || null,
         stack_tecnologico: stack,
-        fuente: fuente.trim() || null,
+        fuente: oferta?.fuente ?? FUENTE_MANUAL,
         fecha_publicacion: fechaPublicacion || null,
       });
     } catch (err) {
@@ -144,16 +144,6 @@ export function OfertaFormModal({ oferta, onClose, onSubmit }: OfertaFormModalPr
           </div>
 
           <div className="grid grid-cols-2 gap-4">
-            <label className="flex flex-col gap-1.5 text-sm text-on-surface-variant">
-              Fuente
-              <input
-                type="text"
-                value={fuente}
-                onChange={(e) => setFuente(e.target.value)}
-                placeholder="Ej: LinkedIn"
-                className="bg-surface border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all"
-              />
-            </label>
             <label className="flex flex-col gap-1.5 text-sm text-on-surface-variant">
               Fecha de publicación
               <input

@@ -5,6 +5,16 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+const dos = (n: number) => String(n).padStart(2, '0');
+
+export function fechaLocalISO(fecha: Date) {
+  return `${fecha.getFullYear()}-${dos(fecha.getMonth() + 1)}-${dos(fecha.getDate())}`;
+}
+
+export function datetimeLocalValue(fecha: Date) {
+  return `${fechaLocalISO(fecha)}T${dos(fecha.getHours())}:${dos(fecha.getMinutes())}`;
+}
+
 export function scoreBandClasses(score: number | null) {
   if (score === null) return 'bg-surface-container-low text-on-surface-variant border-outline-variant';
   if (score >= 75) return 'bg-success-container text-on-success-container border-success';

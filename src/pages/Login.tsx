@@ -2,6 +2,7 @@ import { useState, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { generarDatosEjemplo } from '@/lib/datosEjemplo';
 import logoTexto from '@/assets/logo/laburin-logo-texto.svg';
 
 export function Login() {
@@ -50,6 +51,14 @@ export function Login() {
     setMode('login');
   }
 
+  function handleCompletarConEjemplo() {
+    const datos = generarDatosEjemplo(new Date());
+    setEmail(datos.email);
+    setPassword(datos.password);
+    setError(null);
+    setInfo(`Datos de ejemplo cargados. Contraseña: ${datos.password}`);
+  }
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface p-margin relative">
       <ThemeToggle className="absolute top-6 right-6" />
@@ -88,6 +97,16 @@ export function Login() {
             className="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all"
           />
         </label>
+
+        {import.meta.env.DEV && mode === 'signup' && (
+          <button
+            type="button"
+            onClick={handleCompletarConEjemplo}
+            className="text-xs font-medium text-on-surface-variant border border-dashed border-outline-variant rounded-lg px-3 py-2 hover:border-primary hover:text-primary transition-colors cursor-pointer"
+          >
+            Completar con datos de ejemplo (solo desarrollo)
+          </button>
+        )}
 
         {error && <p className="text-sm text-error">{error}</p>}
         {info && <p className="text-sm text-primary">{info}</p>}
