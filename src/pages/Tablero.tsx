@@ -1,6 +1,10 @@
 import { useEffect, useState, type DragEvent } from 'react';
-import { Building2, Clock, Inbox, Trash2 } from 'lucide-react';
+import { AlertTriangle, Building2, Clock, Inbox, Trash2 } from 'lucide-react';
+import { ApplicationDetailPanel } from '@/components/ApplicationDetailPanel';
+import { useAuth } from '@/hooks/useAuth';
 import { cn, scoreBorderClasses } from '@/lib/utils';
+import { estadoEsFinal, generarRecordatorios, listarRecordatoriosActivos } from '@/services/recordatorios';
+import type { Recordatorio } from '@/types/recordatorio';
 import {
   actualizarEstadoPostulacion,
   eliminarPostulacion,
@@ -10,12 +14,15 @@ import {
 import type { EstadoPostulacion, PostulacionConOferta } from '@/types/postulacion';
 
 export function Tablero() {
+  const { user } = useAuth();
   const [postulaciones, setPostulaciones] = useState<PostulacionConOferta[]>([]);
+  const [recordatorios, setRecordatorios] = useState<Record<string, Recordatorio>>({});
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverEstado, setDragOverEstado] = useState<EstadoPostulacion | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   useEffect(() => {
     refetch();
@@ -32,6 +39,20 @@ export function Tablero() {
     } finally {
       setLoading(false);
     }
+
+    await cargarRecordatorios();
+  }
+
+  async function cargarRecordatorios() {
+    if (!user) return;
+
+    try {
+      await generarRecordatorios(user.id);
+      const activos = await listarRecordatoriosActivos();
+      setRecordatorios(Object.fromEntries(activos.map((r) => [r.postulacion_id, r])));
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'No se pudieron cargar los recordatorios.');
+    }
   }
 
   async function handleDelete(postulacion: PostulacionConOferta) {
@@ -40,6 +61,7 @@ export function Tablero() {
     try {
       await eliminarPostulacion(postulacion.id);
       setPostulaciones((prev) => prev.filter((p) => p.id !== postulacion.id));
+      setSelectedId((prev) => (prev === postulacion.id ? null : prev));
       setActionError(null);
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'No se pudo eliminar la postulación.');
@@ -76,7 +98,10 @@ export function Tablero() {
     setPostulaciones((prev) => prev.map((p) => (p.id === id ? { ...p, estado } : p)));
 
     try {
-      await actualizarEstadoPostulacion(id, estado);
+      const actualizada = await actualizarEstadoPostulacion(id, estado, postulacion.fecha_postulacion);
+      setPostulaciones((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, fecha_postulacion: actualizada.fecha_postulacion } : p))
+      );
       setActionError(null);
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'No se pudo actualizar el estado.');
@@ -140,6 +165,7 @@ export function Tablero() {
                       draggable
                       onDragStart={(e) => handleDragStart(e, postulacion.id)}
                       onDragEnd={handleDragEnd}
+                      onClick={() => setSelectedId(postulacion.id)}
                       className={cn(
                         'bg-surface-container-lowest border border-outline-variant rounded-md p-md shadow-sm hover:shadow-md hover:border-primary transition-all cursor-grab active:cursor-grabbing border-t-4 flex flex-col min-h-30 group',
                         scoreBorderClasses(postulacion.oferta.puntaje_scoring),
@@ -150,16 +176,25 @@ export function Tablero() {
                         <h4 className="text-sm font-medium text-on-surface leading-tight">{postulacion.oferta.rol}</h4>
                         <button
                           type="button"
-                          onClick={() => handleDelete(postulacion)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(postulacion);
+                          }}
                           aria-label="Eliminar postulación"
                           className="text-outline hover:text-error opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
-                      <p className="text-xs font-medium text-on-surface-variant mb-md flex items-center gap-1">
+                      <p className="text-xs font-medium text-on-surface-variant mb-sm flex items-center gap-1">
                         <Building2 className="w-3.5 h-3.5" /> {postulacion.oferta.empresa}
                       </p>
+                      {recordatorios[postulacion.id] && !estadoEsFinal(postulacion.estado) && (
+                        <span className="self-start mb-sm inline-flex items-center gap-1 bg-tertiary-container text-on-tertiary-container px-2 py-0.5 rounded-full text-[11px] font-semibold">
+                          <AlertTriangle className="w-3 h-3" />
+                          Sin novedades hace {recordatorios[postulacion.id].dias_inactividad} días
+                        </span>
+                      )}
                       <div className="flex justify-between items-end mt-auto">
                         <div className="flex items-center gap-1">
                           <span className="w-2 h-2 rounded-full bg-primary"></span>
@@ -182,6 +217,17 @@ export function Tablero() {
           );
         })}
       </div>
+
+      <ApplicationDetailPanel
+        postulacionId={selectedId}
+        onClose={() => setSelectedId(null)}
+        onRecordatorioResuelto={(id) =>
+          setRecordatorios((prev) => Object.fromEntries(Object.entries(prev).filter(([pid]) => pid !== id)))
+        }
+        onEstadoChange={(id, estado, fecha_postulacion) =>
+          setPostulaciones((prev) => prev.map((p) => (p.id === id ? { ...p, estado, fecha_postulacion } : p)))
+        }
+      />
     </div>
   );
 }

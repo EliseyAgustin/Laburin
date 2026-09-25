@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { fechaLocalISO } from '@/lib/utils';
 import type { EstadoPostulacion, Postulacion, PostulacionConOferta } from '@/types/postulacion';
 
 export const ESTADOS_POSTULACION: { estado: EstadoPostulacion; label: string }[] = [
@@ -34,6 +35,17 @@ export async function listarPostulacionesConOferta(): Promise<PostulacionConOfer
   return data as unknown as PostulacionConOferta[];
 }
 
+export async function obtenerPostulacionConOferta(id: string): Promise<PostulacionConOferta> {
+  const { data, error } = await supabase
+    .from('postulaciones')
+    .select('*, oferta:ofertas(*)')
+    .eq('id', id)
+    .single();
+
+  if (error) throw error;
+  return data as unknown as PostulacionConOferta;
+}
+
 export async function crearPostulacion(ofertaId: string): Promise<Postulacion> {
   const { data, error } = await supabase
     .from('postulaciones')
@@ -45,13 +57,25 @@ export async function crearPostulacion(ofertaId: string): Promise<Postulacion> {
   return data as Postulacion;
 }
 
+export function datosCambioEstado(
+  estado: EstadoPostulacion,
+  fechaPostulacionActual: string | null,
+  hoy: string
+): { estado: EstadoPostulacion; fecha_postulacion?: string } {
+  if (estado !== 'por_aplicar' && !fechaPostulacionActual) {
+    return { estado, fecha_postulacion: hoy };
+  }
+  return { estado };
+}
+
 export async function actualizarEstadoPostulacion(
   id: string,
-  estado: EstadoPostulacion
+  estado: EstadoPostulacion,
+  fechaPostulacionActual: string | null
 ): Promise<Postulacion> {
   const { data, error } = await supabase
     .from('postulaciones')
-    .update({ estado })
+    .update(datosCambioEstado(estado, fechaPostulacionActual, fechaLocalISO(new Date())))
     .eq('id', id)
     .select()
     .single();

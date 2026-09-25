@@ -1,12 +1,14 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Download, Filter, MapPin, Clock, Building2, Pencil, Trash2, Plus, Inbox, Send } from 'lucide-react';
+import { ApplicationDetailPanel } from '@/components/ApplicationDetailPanel';
 import { OfertaFormModal } from '@/components/OfertaFormModal';
+import { coincideFuente, FUENTES_OFERTA } from '@/lib/fuentes';
 import { scoreBandClasses, scoreBorderClasses } from '@/lib/utils';
 import { crearOferta, actualizarOferta, eliminarOferta, listarOfertas } from '@/services/ofertas';
 import { crearPostulacion, ESTADO_POSTULACION_LABEL, listarPostulaciones } from '@/services/postulaciones';
 import { importarOfertasRemotas } from '@/services/fuentesExternas';
 import type { Oferta, OfertaInput } from '@/types/oferta';
-import type { Postulacion } from '@/types/postulacion';
+import type { EstadoPostulacion, Postulacion } from '@/types/postulacion';
 
 const MODALIDAD_LABEL: Record<string, string> = {
   remoto: 'Remoto',
@@ -18,6 +20,7 @@ export function Offers() {
   const [ofertas, setOfertas] = useState<Oferta[]>([]);
   const [postulacionesPorOferta, setPostulacionesPorOferta] = useState<Record<string, Postulacion>>({});
   const [postulandoId, setPostulandoId] = useState<string | null>(null);
+  const [fichaPostulacionId, setFichaPostulacionId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -89,6 +92,21 @@ export function Offers() {
     }
   }
 
+  function handleEstadoFichaChange(
+    postulacionId: string,
+    estado: EstadoPostulacion,
+    fecha_postulacion: string | null
+  ) {
+    setPostulacionesPorOferta((prev) =>
+      Object.fromEntries(
+        Object.entries(prev).map(([ofertaId, p]) => [
+          ofertaId,
+          p.id === postulacionId ? { ...p, estado, fecha_postulacion } : p,
+        ])
+      )
+    );
+  }
+
   function openCreateForm() {
     setEditingOferta(null);
     setFormOpen(true);
@@ -122,12 +140,8 @@ export function Offers() {
     setFiltros({ fuente: fuenteDraft, ubicacion: ubicacionDraft.trim(), score: scoreDraft });
   }
 
-  const fuentesDisponibles = Array.from(
-    new Set(ofertas.map((o) => o.fuente).filter((f): f is string => Boolean(f)))
-  ).sort();
-
   const ofertasFiltradas = ofertas.filter((o) => {
-    if (filtros.fuente && o.fuente !== filtros.fuente) return false;
+    if (!coincideFuente(o.fuente, filtros.fuente)) return false;
     if (filtros.ubicacion && !(o.ubicacion ?? '').toLowerCase().includes(filtros.ubicacion.toLowerCase())) {
       return false;
     }
@@ -152,7 +166,7 @@ export function Offers() {
               className="w-full bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg p-2 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none cursor-pointer"
             >
               <option value="">Todas las fuentes</option>
-              {fuentesDisponibles.map((fuente) => (
+              {FUENTES_OFERTA.map((fuente) => (
                 <option key={fuente} value={fuente}>
                   {fuente}
                 </option>
@@ -293,10 +307,14 @@ export function Offers() {
 
                 <div className="mb-4">
                   {postulacionesPorOferta[oferta.id] ? (
-                    <span className="inline-flex items-center gap-1.5 bg-primary-container text-on-primary-container px-3 py-1.5 rounded-lg text-xs font-medium">
+                    <button
+                      onClick={() => setFichaPostulacionId(postulacionesPorOferta[oferta.id].id)}
+                      title="Ver ficha de la postulación"
+                      className="inline-flex items-center gap-1.5 bg-primary-container text-on-primary-container px-3 py-1.5 rounded-lg text-xs font-medium hover:opacity-80 transition-opacity cursor-pointer"
+                    >
                       <Send className="w-3.5 h-3.5" />
                       {ESTADO_POSTULACION_LABEL[postulacionesPorOferta[oferta.id].estado]}
-                    </span>
+                    </button>
                   ) : (
                     <button
                       onClick={() => handlePostularme(oferta)}
@@ -335,6 +353,12 @@ export function Offers() {
           </div>
         )}
       </div>
+
+      <ApplicationDetailPanel
+        postulacionId={fichaPostulacionId}
+        onClose={() => setFichaPostulacionId(null)}
+        onEstadoChange={handleEstadoFichaChange}
+      />
 
       {formOpen && (
         <OfertaFormModal

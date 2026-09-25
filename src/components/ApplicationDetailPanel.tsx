@@ -1,185 +1,391 @@
-import { X, Building2, Globe, Code, Video, Send, PlusCircle, ExternalLink, AlertTriangle } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
+import {
+  X,
+  Building2,
+  Globe,
+  Mail,
+  Phone,
+  Video,
+  StickyNote,
+  CalendarDays,
+  AlertTriangle,
+  PlusCircle,
+  Trash2,
+  type LucideIcon,
+} from 'lucide-react';
+import { cn, datetimeLocalValue, scoreBandClasses } from '@/lib/utils';
+import { crearInteraccion, eliminarInteraccion, listarInteracciones } from '@/services/interacciones';
+import {
+  actualizarEstadoPostulacion,
+  ESTADOS_POSTULACION,
+  obtenerPostulacionConOferta,
+} from '@/services/postulaciones';
+import {
+  estadoEsFinal,
+  obtenerRecordatorioActivo,
+  resolverRecordatorio,
+  resolverRecordatoriosDePostulacion,
+} from '@/services/recordatorios';
+import type { Interaccion, TipoInteraccion } from '@/types/interaccion';
+import type { EstadoPostulacion, PostulacionConOferta } from '@/types/postulacion';
+import type { Recordatorio } from '@/types/recordatorio';
 
 interface PanelProps {
-  isOpen: boolean;
+  postulacionId: string | null;
   onClose: () => void;
-  applicationId: string | null;
+  onRecordatorioResuelto?: (postulacionId: string) => void;
+  onEstadoChange?: (postulacionId: string, estado: EstadoPostulacion, fechaPostulacion: string | null) => void;
 }
 
-export function ApplicationDetailPanel({ isOpen, onClose, applicationId }: PanelProps) {
-  const [showAddInteraction, setShowAddInteraction] = useState(false);
+const TIPO_INTERACCION: Record<TipoInteraccion, { label: string; icon: LucideIcon }> = {
+  mail: { label: 'Mail', icon: Mail },
+  llamada: { label: 'Llamada', icon: Phone },
+  entrevista: { label: 'Entrevista', icon: Video },
+  nota: { label: 'Nota', icon: StickyNote },
+};
 
-  if (!isOpen) return null;
+function formatearFechaHora(iso: string) {
+  return new Date(iso).toLocaleString('es-AR', { dateStyle: 'medium', timeStyle: 'short' });
+}
+
+export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange, onRecordatorioResuelto }: PanelProps) {
+  const [postulacion, setPostulacion] = useState<PostulacionConOferta | null>(null);
+  const [interacciones, setInteracciones] = useState<Interaccion[]>([]);
+  const [recordatorio, setRecordatorio] = useState<Recordatorio | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const [formAbierto, setFormAbierto] = useState(false);
+  const [tipo, setTipo] = useState<TipoInteraccion>('mail');
+  const [fechaHora, setFechaHora] = useState(() => datetimeLocalValue(new Date()));
+  const [notas, setNotas] = useState('');
+  const [guardando, setGuardando] = useState(false);
+
+  useEffect(() => {
+    if (!postulacionId) return;
+
+    let cancelado = false;
+    setLoading(true);
+    setError(null);
+    setFormAbierto(false);
+    setPostulacion(null);
+    setInteracciones([]);
+    setRecordatorio(null);
+
+    Promise.all([
+      obtenerPostulacionConOferta(postulacionId),
+      listarInteracciones(postulacionId),
+      obtenerRecordatorioActivo(postulacionId),
+    ])
+      .then(([p, i, r]) => {
+        if (cancelado) return;
+        setPostulacion(p);
+        setInteracciones(i);
+        setRecordatorio(r);
+      })
+      .catch((err) => {
+        if (!cancelado) setError(err instanceof Error ? err.message : 'No se pudo cargar la postulación.');
+      })
+      .finally(() => {
+        if (!cancelado) setLoading(false);
+      });
+
+    return () => {
+      cancelado = true;
+    };
+  }, [postulacionId]);
+
+  async function handleEstadoChange(estado: EstadoPostulacion) {
+    if (!postulacion || estado === postulacion.estado) return;
+
+    const estadoAnterior = postulacion.estado;
+    setPostulacion({ ...postulacion, estado });
+    try {
+      const actualizada = await actualizarEstadoPostulacion(postulacion.id, estado, postulacion.fecha_postulacion);
+      setPostulacion((prev) => (prev ? { ...prev, fecha_postulacion: actualizada.fecha_postulacion } : prev));
+      onEstadoChange?.(postulacion.id, estado, actualizada.fecha_postulacion);
+      setError(null);
+    } catch (err) {
+      setPostulacion((prev) => (prev ? { ...prev, estado: estadoAnterior } : prev));
+      setError(err instanceof Error ? err.message : 'No se pudo actualizar el estado.');
+    }
+  }
+
+  function abrirForm() {
+    setTipo('mail');
+    setFechaHora(datetimeLocalValue(new Date()));
+    setNotas('');
+    setFormAbierto(true);
+  }
+
+  async function handleAgregarInteraccion(e: FormEvent) {
+    e.preventDefault();
+    if (!postulacionId || !fechaHora) return;
+
+    setGuardando(true);
+    try {
+      const nueva = await crearInteraccion({
+        postulacion_id: postulacionId,
+        tipo,
+        fecha: new Date(fechaHora).toISOString(),
+        notas: notas.trim() || null,
+      });
+      setInteracciones((prev) => [nueva, ...prev].sort((a, b) => b.fecha.localeCompare(a.fecha)));
+      setFormAbierto(false);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo guardar la interacción.');
+      setGuardando(false);
+      return;
+    }
+
+    setGuardando(false);
+    if (recordatorio) {
+      try {
+        await resolverRecordatoriosDePostulacion(postulacionId);
+        setRecordatorio(null);
+        onRecordatorioResuelto?.(postulacionId);
+      } catch (err) {
+        setError(
+          `La interacción se guardó, pero no se pudo resolver el recordatorio: ${err instanceof Error ? err.message : 'error desconocido'}`
+        );
+      }
+    }
+  }
+
+  async function handleResolverRecordatorio() {
+    if (!recordatorio || !postulacionId) return;
+
+    try {
+      await resolverRecordatorio(recordatorio.id);
+      setRecordatorio(null);
+      onRecordatorioResuelto?.(postulacionId);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo resolver el recordatorio.');
+    }
+  }
+
+  async function handleEliminarInteraccion(interaccion: Interaccion) {
+    if (!window.confirm('¿Eliminar esta interacción?')) return;
+
+    try {
+      await eliminarInteraccion(interaccion.id);
+      setInteracciones((prev) => prev.filter((i) => i.id !== interaccion.id));
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo eliminar la interacción.');
+    }
+  }
+
+  if (!postulacionId) return null;
+
+  const oferta = postulacion?.oferta;
+  const score = oferta?.puntaje_scoring ?? null;
 
   return (
-    <aside className={cn(
-      "absolute right-0 top-0 h-full w-130 bg-surface-container-lowest border-l border-outline-variant shadow-[0_0_40px_rgba(0,0,0,0.1)] z-50 flex flex-col transform transition-transform duration-300",
-      isOpen ? "translate-x-0" : "translate-x-full"
-    )}>
-      {/* Panel Header */}
+    <aside className="fixed right-0 top-16 bottom-0 w-130 max-w-full bg-surface-container-lowest border-l border-outline-variant shadow-[0_0_40px_rgba(0,0,0,0.1)] z-50 flex flex-col">
       <div className="px-6 py-6 border-b border-outline-variant flex items-start justify-between bg-surface-bright sticky top-0 z-10">
-        <div>
-          {/* Alert Badge */}
-          <div className="inline-flex items-center gap-1 bg-tertiary-container text-on-tertiary-container px-2 py-1 rounded-full mb-4">
-            <AlertTriangle className="w-3.5 h-3.5" />
-            <span className="text-[11px] font-semibold uppercase tracking-wide">Inactiva &gt; 14 días</span>
-          </div>
-          <h2 className="text-2xl font-semibold text-on-surface mb-1">Senior Frontend Engineer</h2>
-          <div className="flex items-center gap-2 text-on-surface-variant text-sm">
-            <Building2 className="w-4.5 h-4.5" />
-            <span>Stripe</span>
-            <span className="w-1 h-1 rounded-full bg-outline-variant mx-1"></span>
-            <a href="#" className="text-primary hover:underline flex items-center gap-1 group">
-              Ver oferta original
-              <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-            </a>
-          </div>
+        <div className="min-w-0">
+          <h2 className="text-2xl font-semibold text-on-surface mb-1">{oferta?.rol ?? 'Cargando…'}</h2>
+          {oferta && (
+            <div className="flex items-center gap-2 text-on-surface-variant text-sm">
+              <Building2 className="w-4.5 h-4.5" />
+              <span>{oferta.empresa}</span>
+            </div>
+          )}
         </div>
-        <button 
+        <button
           onClick={onClose}
-          className="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors"
+          aria-label="Cerrar ficha"
+          className="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Scrollable Body */}
       <div className="flex-1 overflow-y-auto custom-scrollbar p-6 flex flex-col gap-8">
-        
-        {/* Meta Grid */}
-        <div className="grid grid-cols-2 gap-4 p-4 bg-surface border border-outline-variant rounded-lg">
-          <div>
-            <div className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Match Score</div>
-            <div className="flex items-center gap-2">
-              <div className="w-12 h-12 rounded-full border-4 border-primary flex items-center justify-center text-xl font-semibold text-primary">
-                92
-              </div>
-              <span className="text-xs font-medium text-on-surface-variant">Alta afinidad</span>
-            </div>
-          </div>
-          <div>
-            <div className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1">Fuente</div>
-            <div className="flex items-center gap-2 text-sm text-on-surface h-12">
-              <Globe className="w-5 h-5 text-outline" />
-              LinkedIn Jobs
-            </div>
-          </div>
-        </div>
+        {error && <div className="p-4 bg-error-container text-on-error-container rounded-lg text-sm">{error}</div>}
 
-        {/* Status Selector */}
-        <div>
-          <label className="block text-xs font-medium text-on-surface-variant mb-2">Estado actual en el pipeline</label>
-          <div className="relative">
-            <select className="w-full appearance-none bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-3 pl-4 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary hover:border-outline transition-colors cursor-pointer shadow-sm">
-              <option value="screening">Screening RRHH</option>
-              <option selected value="technical">Entrevista Técnica</option>
-              <option value="challenge">Challenge / Prueba</option>
-              <option value="offer">Oferta</option>
-              <option value="rejected">Rechazado</option>
-            </select>
-          </div>
-        </div>
+        {loading && <p className="text-sm text-on-surface-variant text-center py-8">Cargando ficha…</p>}
 
-        {/* Timeline Section */}
-        <div>
-          <div className="flex items-center justify-between mb-6 border-b border-outline-variant pb-2">
-            <h3 className="text-xl font-heading font-semibold text-on-surface">Timeline de Interacciones</h3>
-          </div>
-          
-          <div className="ml-4.75 border-l border-outline-variant space-y-6 pb-4">
-            
-            {/* Node 1 */}
-            <div className="relative pl-6 group">
-              <div className="absolute -left-4.25 top-0 bg-surface-container-lowest border border-primary rounded-full p-1 text-primary shadow-sm">
-                <Code className="w-4.5 h-4.5" />
-              </div>
-              <div className="text-[11px] font-semibold text-on-surface-variant mb-0.5">Hoy, 14:30 hs</div>
-              <div className="bg-surface border border-outline-variant rounded-lg p-4 group-hover:border-primary-fixed-dim transition-colors shadow-sm">
-                <div className="text-sm font-semibold text-on-surface mb-1">Live Coding Assessment</div>
-                <p className="text-sm text-on-surface-variant">Prueba en vivo con el equipo de Core Platform. Se resolvieron algoritmos de optimización de renderizado. Feedback positivo inicial.</p>
-              </div>
-            </div>
-            
-            {/* Node 2 */}
-            <div className="relative pl-6 group">
-              <div className="absolute -left-4.25 top-0 bg-surface-container-lowest border border-outline-variant rounded-full p-1 text-on-surface-variant shadow-sm">
-                <Video className="w-4.5 h-4.5" />
-              </div>
-              <div className="text-[11px] font-semibold text-on-surface-variant mb-0.5">Hace 14 días</div>
-              <div className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 group-hover:border-outline transition-colors">
-                <div className="text-sm font-semibold text-on-surface mb-1">Entrevista HR (Filtro inicial)</div>
-                <p className="text-sm text-on-surface-variant">Charla sobre cultura y expectativas salariales alineadas. Pasan mi perfil a los managers técnicos.</p>
-              </div>
-            </div>
-
-            {/* Node 3 */}
-            <div className="relative pl-6 group">
-              <div className="absolute -left-4.25 top-0 bg-surface-container-lowest border border-outline-variant rounded-full p-1 text-on-surface-variant shadow-sm">
-                <Send className="w-4.5 h-4.5" />
-              </div>
-              <div className="text-[11px] font-semibold text-on-surface-variant mb-0.5">Hace 20 días</div>
-              <div className="text-sm font-semibold text-on-surface">Postulación enviada</div>
-            </div>
-
-          </div>
-
-          {/* Add Interaction Form Trigger */}
-          {!showAddInteraction ? (
-            <div 
-              className="mt-6 border border-outline-variant border-dashed rounded-lg bg-surface-container-lowest p-4 hover:bg-surface-container-low transition-colors cursor-pointer group"
-              onClick={() => setShowAddInteraction(true)}
-            >
-              <div className="flex items-center justify-center gap-2 text-primary text-sm font-semibold">
-                <PlusCircle className="group-hover:scale-110 transition-transform w-5 h-5" />
-                Agregar interacción
-              </div>
-            </div>
-          ) : (
-            <div className="mt-6 bg-surface border border-outline-variant rounded-lg p-4 shadow-sm">
-              <h4 className="text-xs font-medium text-on-surface mb-4">Nueva interacción</h4>
-              <div className="grid grid-cols-2 gap-2 mb-4">
-                <div>
-                  <label className="block text-[11px] font-semibold text-on-surface-variant mb-1">Tipo</label>
-                  <select className="w-full bg-surface-container-lowest border border-outline-variant rounded-md py-1.5 px-2 text-sm focus:border-primary outline-none">
-                    <option>Llamada</option>
-                    <option>Email recibido</option>
-                    <option>Entrevista</option>
-                    <option>Prueba Técnica</option>
-                  </select>
+        {postulacion && oferta && (
+          <>
+            {recordatorio && !estadoEsFinal(postulacion.estado) && (
+              <div className="flex items-center justify-between gap-3 p-4 bg-tertiary-container text-on-tertiary-container rounded-lg">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <AlertTriangle className="w-4.5 h-4.5 shrink-0" />
+                  Sin novedades hace {recordatorio.dias_inactividad} días
                 </div>
-                <div>
-                  <label className="block text-[11px] font-semibold text-on-surface-variant mb-1">Fecha</label>
-                  <input type="date" className="w-full bg-surface-container-lowest border border-outline-variant rounded-md py-1.5 px-2 text-sm focus:border-primary outline-none" />
-                </div>
-              </div>
-              <label className="block text-[11px] font-semibold text-on-surface-variant mb-1">Notas / Descripción corta</label>
-              <textarea 
-                className="w-full bg-surface-container-lowest border border-outline-variant rounded-md py-2 px-3 text-sm focus:border-primary outline-none mb-4 resize-none" 
-                placeholder="Detalles de la interacción..." 
-                rows={2}
-              ></textarea>
-              
-              <div className="flex justify-end gap-2">
-                <button 
-                  type="button" 
-                  onClick={() => setShowAddInteraction(false)}
-                  className="px-4 py-1.5 rounded-md text-on-surface-variant text-xs font-medium hover:bg-surface-container-highest transition-colors"
+                <button
+                  type="button"
+                  onClick={handleResolverRecordatorio}
+                  className="shrink-0 text-xs font-semibold underline hover:no-underline cursor-pointer"
                 >
-                  Cancelar
-                </button>
-                <button 
-                  type="button" 
-                  className="px-4 py-1.5 rounded-md bg-primary text-on-primary text-xs font-medium hover:bg-on-primary-fixed-variant transition-colors shadow-sm"
-                >
-                  Guardar
+                  Marcar como resuelto
                 </button>
               </div>
-            </div>
-          )}
+            )}
 
-        </div>
+            <div className="grid grid-cols-2 gap-4 p-4 bg-surface border border-outline-variant rounded-lg">
+              <div>
+                <div className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1">
+                  Score
+                </div>
+                <div
+                  className={cn(
+                    'w-12 h-12 rounded-full border flex items-center justify-center text-xl font-semibold',
+                    scoreBandClasses(score)
+                  )}
+                >
+                  {score !== null ? Math.round(score) : '—'}
+                </div>
+              </div>
+              <div>
+                <div className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1">
+                  Fuente
+                </div>
+                <div className="flex items-center gap-2 text-sm text-on-surface h-12">
+                  <Globe className="w-5 h-5 text-outline" />
+                  {oferta.fuente ?? 'Sin fuente'}
+                </div>
+              </div>
+              <div className="col-span-2 flex items-center gap-2 text-sm text-on-surface-variant">
+                <CalendarDays className="w-4.5 h-4.5" />
+                Fecha de postulación: {postulacion.fecha_postulacion ?? 'Sin registrar'}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-on-surface-variant mb-2">
+                Estado actual en el pipeline
+              </label>
+              <select
+                value={postulacion.estado}
+                onChange={(e) => handleEstadoChange(e.target.value as EstadoPostulacion)}
+                className="w-full appearance-none bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-3 pl-4 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary hover:border-outline transition-colors cursor-pointer shadow-sm"
+              >
+                {ESTADOS_POSTULACION.map(({ estado, label }) => (
+                  <option key={estado} value={estado}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-6 border-b border-outline-variant pb-2">
+                <h3 className="text-xl font-heading font-semibold text-on-surface">Timeline de Interacciones</h3>
+              </div>
+
+              {interacciones.length === 0 ? (
+                <p className="text-sm text-on-surface-variant">Todavía no registraste interacciones.</p>
+              ) : (
+                <div className="ml-4.75 border-l border-outline-variant space-y-6 pb-4">
+                  {interacciones.map((interaccion) => {
+                    const { label, icon: Icon } = TIPO_INTERACCION[interaccion.tipo];
+                    return (
+                      <div key={interaccion.id} className="relative pl-6 group">
+                        <div className="absolute -left-4.25 top-0 bg-surface-container-lowest border border-outline-variant rounded-full p-1 text-on-surface-variant shadow-sm">
+                          <Icon className="w-4.5 h-4.5" />
+                        </div>
+                        <div className="text-[11px] font-semibold text-on-surface-variant mb-0.5">
+                          {formatearFechaHora(interaccion.fecha)}
+                        </div>
+                        <div className="bg-surface border border-outline-variant rounded-lg p-4 shadow-sm">
+                          <div className="flex items-start justify-between gap-2 mb-1">
+                            <div className="text-sm font-semibold text-on-surface">{label}</div>
+                            <button
+                              type="button"
+                              onClick={() => handleEliminarInteraccion(interaccion)}
+                              aria-label="Eliminar interacción"
+                              className="text-outline hover:text-error opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                          {interaccion.notas && (
+                            <p className="text-sm text-on-surface-variant whitespace-pre-line">{interaccion.notas}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {!formAbierto ? (
+                <button
+                  type="button"
+                  onClick={abrirForm}
+                  className="mt-6 w-full border border-outline-variant border-dashed rounded-lg bg-surface-container-lowest p-4 hover:bg-surface-container-low transition-colors cursor-pointer flex items-center justify-center gap-2 text-primary text-sm font-semibold"
+                >
+                  <PlusCircle className="w-5 h-5" />
+                  Agregar interacción
+                </button>
+              ) : (
+                <form
+                  onSubmit={handleAgregarInteraccion}
+                  className="mt-6 bg-surface border border-outline-variant rounded-lg p-4 shadow-sm"
+                >
+                  <h4 className="text-xs font-medium text-on-surface mb-4">Nueva interacción</h4>
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    <label className="block text-[11px] font-semibold text-on-surface-variant">
+                      Tipo
+                      <select
+                        value={tipo}
+                        onChange={(e) => setTipo(e.target.value as TipoInteraccion)}
+                        className="mt-1 w-full bg-surface-container-lowest border border-outline-variant rounded-md py-1.5 px-2 text-sm font-normal text-on-surface focus:border-primary outline-none cursor-pointer"
+                      >
+                        {(Object.keys(TIPO_INTERACCION) as TipoInteraccion[]).map((t) => (
+                          <option key={t} value={t}>
+                            {TIPO_INTERACCION[t].label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="block text-[11px] font-semibold text-on-surface-variant">
+                      Fecha y hora
+                      <input
+                        type="datetime-local"
+                        required
+                        value={fechaHora}
+                        onChange={(e) => setFechaHora(e.target.value)}
+                        className="mt-1 w-full bg-surface-container-lowest border border-outline-variant rounded-md py-1.5 px-2 text-sm font-normal text-on-surface focus:border-primary outline-none"
+                      />
+                    </label>
+                  </div>
+                  <label className="block text-[11px] font-semibold text-on-surface-variant mb-4">
+                    Notas
+                    <textarea
+                      value={notas}
+                      onChange={(e) => setNotas(e.target.value)}
+                      rows={2}
+                      placeholder="Detalles de la interacción..."
+                      className="mt-1 w-full bg-surface-container-lowest border border-outline-variant rounded-md py-2 px-3 text-sm font-normal text-on-surface focus:border-primary outline-none resize-none"
+                    />
+                  </label>
+                  <div className="flex justify-end gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormAbierto(false)}
+                      className="px-4 py-1.5 rounded-md text-on-surface-variant text-xs font-medium hover:bg-surface-container-highest transition-colors cursor-pointer"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={guardando}
+                      className="px-4 py-1.5 rounded-md bg-primary text-on-primary text-xs font-medium hover:opacity-90 transition-all shadow-sm disabled:opacity-50 cursor-pointer"
+                    >
+                      {guardando ? 'Guardando…' : 'Guardar'}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </aside>
   );
