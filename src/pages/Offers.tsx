@@ -2,10 +2,12 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { Download, Filter, MapPin, Clock, Building2, Pencil, Trash2, Plus, Inbox, Send } from 'lucide-react';
 import { mensajeDeError } from '@/lib/errores';
 import { ApplicationDetailPanel } from '@/components/ApplicationDetailPanel';
+import { ConfirmarEliminacionModal } from '@/components/ConfirmarEliminacionModal';
 import { OfertaFormModal } from '@/components/OfertaFormModal';
 import { coincideFuente, FUENTES_OFERTA } from '@/lib/fuentes';
+import { alternarId, alternarTodas, estadoSeleccionTodas, idsSeleccionadosVisibles } from '@/lib/seleccion';
 import { scoreBandClasses, scoreBorderClasses } from '@/lib/utils';
-import { crearOferta, actualizarOferta, eliminarOferta, listarOfertas } from '@/services/ofertas';
+import { crearOferta, actualizarOferta, eliminarOferta, eliminarOfertas, listarOfertas } from '@/services/ofertas';
 import { crearPostulacion, ESTADO_POSTULACION_LABEL, listarPostulaciones } from '@/services/postulaciones';
 import { importarOfertasRemotas } from '@/services/fuentesExternas';
 import type { Oferta, OfertaInput } from '@/types/oferta';
@@ -28,6 +30,10 @@ export function Offers() {
   const [editingOferta, setEditingOferta] = useState<Oferta | null>(null);
   const [importing, setImporting] = useState(false);
   const [importMessage, setImportMessage] = useState<string | null>(null);
+  const [seleccionadas, setSeleccionadas] = useState<Set<string>>(new Set());
+  const [confirmandoBorrado, setConfirmandoBorrado] = useState(false);
+  const [eliminando, setEliminando] = useState(false);
+  const [resultadoBorrado, setResultadoBorrado] = useState<{ texto: string; hayFallos: boolean } | null>(null);
 
   const [fuenteDraft, setFuenteDraft] = useState('');
   const [ubicacionDraft, setUbicacionDraft] = useState('');
@@ -134,10 +140,16 @@ export function Offers() {
     if (!window.confirm(`¿Eliminar la oferta "${oferta.rol}" en ${oferta.empresa}?`)) return;
     await eliminarOferta(oferta.id);
     setOfertas((prev) => prev.filter((o) => o.id !== oferta.id));
+    setSeleccionadas((prev) => {
+      const siguiente = new Set(prev);
+      siguiente.delete(oferta.id);
+      return siguiente;
+    });
   }
 
   function handleAplicarFiltros(e: FormEvent) {
     e.preventDefault();
+    setSeleccionadas(new Set());
     setFiltros({ fuente: fuenteDraft, ubicacion: ubicacionDraft.trim(), score: scoreDraft });
   }
 
@@ -149,6 +161,40 @@ export function Offers() {
     if ((o.puntaje_scoring ?? 0) < filtros.score) return false;
     return true;
   });
+
+  const idsSeleccionados = idsSeleccionadosVisibles(ofertasFiltradas, seleccionadas);
+  const estadoTodas = estadoSeleccionTodas(ofertasFiltradas, seleccionadas);
+  const seleccionadasConSeguimiento = idsSeleccionados.filter((id) => postulacionesPorOferta[id]).length;
+
+  async function handleEliminarSeleccionadas() {
+    setEliminando(true);
+    try {
+      const { eliminadas, fallidas, motivo } = await eliminarOfertas(idsSeleccionados);
+      const borradas = new Set(eliminadas);
+
+      setOfertas((prev) => prev.filter((o) => !borradas.has(o.id)));
+      setPostulacionesPorOferta((prev) =>
+        Object.fromEntries(Object.entries(prev).filter(([ofertaId]) => !borradas.has(ofertaId)))
+      );
+      setFichaPostulacionId((actual) =>
+        actual && Object.entries(postulacionesPorOferta).some(([ofertaId, p]) => p.id === actual && borradas.has(ofertaId))
+          ? null
+          : actual
+      );
+      setSeleccionadas(new Set(fallidas));
+
+      const partes = [`${eliminadas.length} ${eliminadas.length === 1 ? 'oferta eliminada' : 'ofertas eliminadas'}`];
+      if (fallidas.length > 0) {
+        partes.push(`${fallidas.length} no se pudieron eliminar${motivo ? `: ${motivo}` : ''}`);
+      }
+      setResultadoBorrado({ texto: partes.join(' · '), hayFallos: fallidas.length > 0 });
+    } catch (err) {
+      setResultadoBorrado({ texto: mensajeDeError(err, 'No se pudieron eliminar las ofertas.'), hayFallos: true });
+    } finally {
+      setConfirmandoBorrado(false);
+      setEliminando(false);
+    }
+  }
 
   return (
     <div className="flex-1 overflow-y-auto bg-surface-container-lowest p-margin h-full">
@@ -221,6 +267,18 @@ export function Offers() {
           </div>
         )}
 
+        {resultadoBorrado && (
+          <div
+            className={`mb-lg p-4 rounded-lg text-sm ${
+              resultadoBorrado.hayFallos
+                ? 'bg-error-container text-on-error-container'
+                : 'bg-primary-container text-on-primary-container'
+            }`}
+          >
+            {resultadoBorrado.texto}
+          </div>
+        )}
+
         {importing && (
           <div className="mb-lg p-4 bg-surface-container-high text-on-surface-variant rounded-lg text-sm">
             Consultando Remotive y Arbeitnow… normalmente tarda entre 5 y 15 segundos, depende de cuántas ofertas nuevas haya.
@@ -264,13 +322,62 @@ export function Offers() {
             <p className="text-sm font-medium text-on-surface-variant">Ninguna oferta coincide con los filtros aplicados.</p>
           </div>
         ) : (
+          <>
+          <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 mb-4 px-4 py-3 bg-surface rounded-xl border border-outline-variant shadow-sm">
+            <label className="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer select-none">
+              <input
+                type="checkbox"
+                ref={(el) => {
+                  if (el) el.indeterminate = estadoTodas === 'algunas';
+                }}
+                checked={estadoTodas === 'todas'}
+                onChange={() => setSeleccionadas(alternarTodas(ofertasFiltradas, seleccionadas))}
+                className="w-4 h-4 accent-primary cursor-pointer"
+              />
+              Seleccionar todas ({ofertasFiltradas.length})
+            </label>
+
+            {idsSeleccionados.length > 0 && (
+              <div className="flex items-center gap-3">
+                <span className="text-sm text-on-surface-variant">
+                  {idsSeleccionados.length === 1 ? '1 seleccionada' : `${idsSeleccionados.length} seleccionadas`}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSeleccionadas(new Set())}
+                  className="text-sm text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+                >
+                  Deseleccionar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setResultadoBorrado(null);
+                    setConfirmandoBorrado(true);
+                  }}
+                  className="bg-error text-on-error text-sm font-medium px-4 py-2 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Eliminar seleccionadas ({idsSeleccionados.length})
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {ofertasFiltradas.map((oferta) => (
               <div
                 key={oferta.id}
-                className={`bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:shadow-md hover:border-primary transition-all group flex flex-col h-full border-t-4 ${scoreBorderClasses(oferta.puntaje_scoring)}`}
+                className={`bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:shadow-md hover:border-primary transition-all group flex flex-col h-full border-t-4 ${scoreBorderClasses(oferta.puntaje_scoring)} ${seleccionadas.has(oferta.id) ? 'ring-2 ring-primary' : ''}`}
               >
                 <div className="flex justify-between items-start mb-4">
+                  <input
+                    type="checkbox"
+                    checked={seleccionadas.has(oferta.id)}
+                    onChange={() => setSeleccionadas((prev) => alternarId(prev, oferta.id))}
+                    aria-label={`Seleccionar la oferta ${oferta.rol} en ${oferta.empresa}`}
+                    className="w-4 h-4 mt-1.5 mr-3 shrink-0 accent-primary cursor-pointer"
+                  />
                   <div className="flex-1 pr-4">
                     <h3 className="text-lg font-semibold leading-tight text-on-surface mb-1 group-hover:text-primary transition-colors">{oferta.rol}</h3>
                     <div className="flex items-center gap-2 text-on-surface-variant text-[13px]">
@@ -352,8 +459,19 @@ export function Offers() {
               </div>
             ))}
           </div>
+          </>
         )}
       </div>
+
+      {confirmandoBorrado && (
+        <ConfirmarEliminacionModal
+          cantidad={idsSeleccionados.length}
+          conSeguimiento={seleccionadasConSeguimiento}
+          eliminando={eliminando}
+          onConfirmar={handleEliminarSeleccionadas}
+          onCancelar={() => setConfirmandoBorrado(false)}
+        />
+      )}
 
       <ApplicationDetailPanel
         postulacionId={fichaPostulacionId}
