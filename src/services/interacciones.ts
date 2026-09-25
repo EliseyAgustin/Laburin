@@ -23,3 +23,10 @@ export async function eliminarInteraccion(id: string): Promise<void> {
   const { error } = await supabase.from('interacciones').delete().eq('id', id);
   if (error) throw error;
 }
+
+export async function listarTodasLasInteracciones(): Promise<Interaccion[]> {
+  const { data, error } = await supabase.from('interacciones').select('*');
+
+  if (error) throw error;
+  return data as Interaccion[];
+}
