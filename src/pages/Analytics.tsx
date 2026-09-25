@@ -167,9 +167,9 @@ function Contenido({
   const embudoData = m.embudo.etapas.map((e) => ({ name: ESTADO_POSTULACION_LABEL[e.estado], value: e.alcanzadas }));
   const bandas = m.score.bandas;
   const bandasData = bandas && [
-    { name: 'Alto (≥75%)', value: bandas.alto, color: colors.bandas.alto },
-    { name: 'Medio (50–75%)', value: bandas.medio, color: colors.bandas.medio },
-    { name: 'Bajo (<50%)', value: bandas.bajo, color: colors.bandas.bajo },
+    { name: 'Alto', value: bandas.alto, color: colors.bandas.alto },
+    { name: 'Medio', value: bandas.medio, color: colors.bandas.medio },
+    { name: 'Bajo', value: bandas.bajo, color: colors.bandas.bajo },
     { name: 'Sin score', value: bandas.sinScore, color: colors.bandas.sinScore },
   ];
   const semanasData = m.semanas.map((s) => ({
@@ -284,16 +284,16 @@ function Contenido({
           )}
         </ChartCard>
 
-        <ChartCard title="Distribución de score" subtitle="Ofertas por franja, relativa al máximo posible">
+        <ChartCard title="Distribución de score" subtitle="Franjas sobre el máximo posible: Alto ≥75% · Medio 50–75% · Bajo <50%">
           {bandasData === null ? (
             <SinDatos mensaje="No hay criterios activos. Activá al menos uno en Configuración para ver las franjas." />
           ) : m.ofertas.total === 0 ? (
             <SinDatos mensaje="Todavía no cargaste ofertas." />
           ) : (
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={bandasData} margin={{ top: 5, right: 10, left: -20, bottom: 20 }}>
+              <BarChart data={bandasData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={colors.grid} />
-                <XAxis dataKey="name" tick={{ fontSize: 11, fill: colors.axisText }} axisLine={false} tickLine={false} angle={-30} textAnchor="end" />
+                <XAxis dataKey="name" tick={{ fontSize: 11, fill: colors.axisText }} axisLine={false} tickLine={false} />
                 <YAxis allowDecimals={false} tick={axisTick} axisLine={false} tickLine={false} />
                 <Tooltip {...tooltipProps} />
                 <Bar dataKey="value" name="Ofertas" radius={[4, 4, 0, 0]} barSize={32}>
