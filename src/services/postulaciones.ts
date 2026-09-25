@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { fechaLocalISO } from '@/lib/utils';
+import type { HistorialEstado } from '@/types/historialEstado';
 import type { EstadoPostulacion, Postulacion, PostulacionConOferta } from '@/types/postulacion';
 
 export const ESTADOS_POSTULACION: { estado: EstadoPostulacion; label: string }[] = [
@@ -87,4 +88,11 @@ export async function actualizarEstadoPostulacion(
 export async function eliminarPostulacion(id: string): Promise<void> {
   const { error } = await supabase.from('postulaciones').delete().eq('id', id);
   if (error) throw error;
+}
+
+export async function listarHistorialEstados(): Promise<HistorialEstado[]> {
+  const { data, error } = await supabase.from('postulacion_historial_estados').select('*');
+
+  if (error) throw error;
+  return data as HistorialEstado[];
 }

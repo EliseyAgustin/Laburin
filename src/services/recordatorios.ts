@@ -135,3 +135,10 @@ export async function resolverRecordatoriosDePostulacion(postulacionId: string):
 
   if (error) throw error;
 }
+
+export async function listarTodosLosRecordatorios(): Promise<Recordatorio[]> {
+  const { data, error } = await supabase.from('recordatorios').select('*');
+
+  if (error) throw error;
+  return data as Recordatorio[];
+}
