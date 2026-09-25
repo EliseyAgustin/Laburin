@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { mensajeDeError } from '@/lib/errores';
 import { completarOnboarding, omitirOnboarding } from '@/services/onboarding';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import type { Modalidad } from '@/types/oferta';
@@ -38,7 +39,7 @@ export function OnboardingWizard() {
       await refresh();
       navigate('/tablero', { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar tu perfil.');
+      setError(mensajeDeError(err, 'No se pudo guardar tu perfil.'));
       setSaving(false);
     }
   }
@@ -51,7 +52,7 @@ export function OnboardingWizard() {
       await refresh();
       navigate('/tablero', { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo omitir el onboarding.');
+      setError(mensajeDeError(err, 'No se pudo omitir el onboarding.'));
       setSaving(false);
     }
   }

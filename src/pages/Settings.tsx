@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Timer, Terminal, Briefcase, MapPin, Plus, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
+import { mensajeDeError } from '@/lib/errores';
 import { cn } from '@/lib/utils';
 import {
   actualizarCriterio,
@@ -70,7 +71,7 @@ export function Settings() {
       setCriterios(data);
       setLoadError(null);
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : 'No se pudieron cargar los criterios.');
+      setLoadError(mensajeDeError(err, 'No se pudieron cargar los criterios.'));
     } finally {
       setLoading(false);
     }
@@ -99,7 +100,7 @@ export function Settings() {
       setCriterios((prev) => prev.map((c) => (c.id === actualizado.id ? actualizado : c)));
       setActionError(null);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'No se pudo actualizar el peso.');
+      setActionError(mensajeDeError(err, 'No se pudo actualizar el peso.'));
       await refetch();
     } finally {
       marcarGuardando(criterio.id, false);
@@ -113,7 +114,7 @@ export function Settings() {
       setCriterios((prev) => prev.map((c) => (c.id === actualizado.id ? actualizado : c)));
       setActionError(null);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'No se pudo actualizar el criterio.');
+      setActionError(mensajeDeError(err, 'No se pudo actualizar el criterio.'));
     } finally {
       marcarGuardando(criterio.id, false);
     }
@@ -128,7 +129,7 @@ export function Settings() {
       setCriterios((prev) => prev.filter((c) => c.id !== criterio.id));
       setActionError(null);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'No se pudo eliminar el criterio.');
+      setActionError(mensajeDeError(err, 'No se pudo eliminar el criterio.'));
       marcarGuardando(criterio.id, false);
     }
   }
@@ -146,7 +147,7 @@ export function Settings() {
       setStackPesoDraft('10');
       setActionError(null);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'No se pudo crear el criterio.');
+      setActionError(mensajeDeError(err, 'No se pudo crear el criterio.'));
     }
   }
 
@@ -162,7 +163,7 @@ export function Settings() {
       setModalidadPesoDraft('10');
       setActionError(null);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'No se pudo crear el criterio.');
+      setActionError(mensajeDeError(err, 'No se pudo crear el criterio.'));
     }
   }
 
@@ -179,7 +180,7 @@ export function Settings() {
       setUbicacionPesoDraft('10');
       setActionError(null);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'No se pudo crear el criterio.');
+      setActionError(mensajeDeError(err, 'No se pudo crear el criterio.'));
     }
   }
 

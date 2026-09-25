@@ -1,5 +1,6 @@
 import { useState, type FormEvent, type KeyboardEvent } from 'react';
 import { X } from 'lucide-react';
+import { mensajeDeError } from '@/lib/errores';
 import { FUENTE_MANUAL } from '@/lib/fuentes';
 import type { Modalidad, Oferta, OfertaInput } from '@/types/oferta';
 
@@ -70,7 +71,7 @@ export function OfertaFormModal({ oferta, onClose, onSubmit }: OfertaFormModalPr
         fecha_publicacion: fechaPublicacion || null,
       });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar la oferta.');
+      setError(mensajeDeError(err, 'No se pudo guardar la oferta.'));
       setSaving(false);
     }
   }
