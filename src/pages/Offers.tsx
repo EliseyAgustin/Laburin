@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Download, Filter, MapPin, Clock, Building2, Pencil, Trash2, Plus, Inbox, Send } from 'lucide-react';
+import { mensajeDeError } from '@/lib/errores';
 import { ApplicationDetailPanel } from '@/components/ApplicationDetailPanel';
 import { OfertaFormModal } from '@/components/OfertaFormModal';
 import { coincideFuente, FUENTES_OFERTA } from '@/lib/fuentes';
@@ -47,7 +48,7 @@ export function Offers() {
       );
       setLoadError(null);
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : 'No se pudieron cargar las ofertas.');
+      setLoadError(mensajeDeError(err, 'No se pudieron cargar las ofertas.'));
     } finally {
       setLoading(false);
     }
@@ -60,7 +61,7 @@ export function Offers() {
       setPostulacionesPorOferta((prev) => ({ ...prev, [oferta.id]: postulacion }));
       setLoadError(null);
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : 'No se pudo crear la postulación.');
+      setLoadError(mensajeDeError(err, 'No se pudo crear la postulación.'));
     } finally {
       setPostulandoId(null);
     }
@@ -86,7 +87,7 @@ export function Offers() {
       setImportMessage(partes.join(' · '));
       setLoadError(null);
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : 'No se pudieron importar ofertas remotas.');
+      setLoadError(mensajeDeError(err, 'No se pudieron importar ofertas remotas.'));
     } finally {
       setImporting(false);
     }

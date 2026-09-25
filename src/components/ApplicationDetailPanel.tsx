@@ -13,6 +13,7 @@ import {
   Trash2,
   type LucideIcon,
 } from 'lucide-react';
+import { mensajeDeError } from '@/lib/errores';
 import { cn, datetimeLocalValue, scoreBandClasses } from '@/lib/utils';
 import { crearInteraccion, eliminarInteraccion, listarInteracciones } from '@/services/interacciones';
 import {
@@ -84,7 +85,7 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
         setRecordatorio(r);
       })
       .catch((err) => {
-        if (!cancelado) setError(err instanceof Error ? err.message : 'No se pudo cargar la postulación.');
+        if (!cancelado) setError(mensajeDeError(err, 'No se pudo cargar la postulación.'));
       })
       .finally(() => {
         if (!cancelado) setLoading(false);
@@ -107,7 +108,7 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
       setError(null);
     } catch (err) {
       setPostulacion((prev) => (prev ? { ...prev, estado: estadoAnterior } : prev));
-      setError(err instanceof Error ? err.message : 'No se pudo actualizar el estado.');
+      setError(mensajeDeError(err, 'No se pudo actualizar el estado.'));
     }
   }
 
@@ -134,7 +135,7 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
       setFormAbierto(false);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo guardar la interacción.');
+      setError(mensajeDeError(err, 'No se pudo guardar la interacción.'));
       setGuardando(false);
       return;
     }
@@ -147,7 +148,7 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
         onRecordatorioResuelto?.(postulacionId);
       } catch (err) {
         setError(
-          `La interacción se guardó, pero no se pudo resolver el recordatorio: ${err instanceof Error ? err.message : 'error desconocido'}`
+          `La interacción se guardó, pero no se pudo resolver el recordatorio: ${mensajeDeError(err, 'error desconocido')}`
         );
       }
     }
@@ -162,7 +163,7 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
       onRecordatorioResuelto?.(postulacionId);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo resolver el recordatorio.');
+      setError(mensajeDeError(err, 'No se pudo resolver el recordatorio.'));
     }
   }
 
@@ -174,7 +175,7 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
       setInteracciones((prev) => prev.filter((i) => i.id !== interaccion.id));
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'No se pudo eliminar la interacción.');
+      setError(mensajeDeError(err, 'No se pudo eliminar la interacción.'));
     }
   }
 

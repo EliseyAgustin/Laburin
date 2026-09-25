@@ -1,5 +1,6 @@
 import { useEffect, useState, type DragEvent } from 'react';
 import { AlertTriangle, Building2, Clock, Inbox, Trash2 } from 'lucide-react';
+import { mensajeDeError } from '@/lib/errores';
 import { ApplicationDetailPanel } from '@/components/ApplicationDetailPanel';
 import { useAuth } from '@/hooks/useAuth';
 import { cn, scoreBorderClasses } from '@/lib/utils';
@@ -35,7 +36,7 @@ export function Tablero() {
       setPostulaciones(data);
       setLoadError(null);
     } catch (err) {
-      setLoadError(err instanceof Error ? err.message : 'No se pudieron cargar las postulaciones.');
+      setLoadError(mensajeDeError(err, 'No se pudieron cargar las postulaciones.'));
     } finally {
       setLoading(false);
     }
@@ -51,7 +52,7 @@ export function Tablero() {
       const activos = await listarRecordatoriosActivos();
       setRecordatorios(Object.fromEntries(activos.map((r) => [r.postulacion_id, r])));
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'No se pudieron cargar los recordatorios.');
+      setActionError(mensajeDeError(err, 'No se pudieron cargar los recordatorios.'));
     }
   }
 
@@ -64,7 +65,7 @@ export function Tablero() {
       setSelectedId((prev) => (prev === postulacion.id ? null : prev));
       setActionError(null);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'No se pudo eliminar la postulación.');
+      setActionError(mensajeDeError(err, 'No se pudo eliminar la postulación.'));
     }
   }
 
@@ -104,7 +105,7 @@ export function Tablero() {
       );
       setActionError(null);
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'No se pudo actualizar el estado.');
+      setActionError(mensajeDeError(err, 'No se pudo actualizar el estado.'));
       setPostulaciones((prev) => prev.map((p) => (p.id === id ? { ...p, estado: estadoAnterior } : p)));
     }
   }
