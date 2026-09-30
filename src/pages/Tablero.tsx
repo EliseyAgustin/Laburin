@@ -86,6 +86,25 @@ export function Tablero() {
     setDragOverEstado(estado);
   }
 
+  // Compartida entre el drop del drag nativo (desktop) y el <select> "Mover a..." (mobile, sin drag táctil).
+  async function moverEstado(postulacion: PostulacionConOferta, estado: EstadoPostulacion) {
+    if (postulacion.estado === estado) return;
+
+    const estadoAnterior = postulacion.estado;
+    setPostulaciones((prev) => prev.map((p) => (p.id === postulacion.id ? { ...p, estado } : p)));
+
+    try {
+      const actualizada = await actualizarEstadoPostulacion(postulacion.id, estado, postulacion.fecha_postulacion);
+      setPostulaciones((prev) =>
+        prev.map((p) => (p.id === postulacion.id ? { ...p, fecha_postulacion: actualizada.fecha_postulacion } : p))
+      );
+      setActionError(null);
+    } catch (err) {
+      setActionError(mensajeDeError(err, 'No se pudo actualizar el estado.'));
+      setPostulaciones((prev) => prev.map((p) => (p.id === postulacion.id ? { ...p, estado: estadoAnterior } : p)));
+    }
+  }
+
   async function handleDrop(e: DragEvent<HTMLDivElement>, estado: EstadoPostulacion) {
     e.preventDefault();
     const id = e.dataTransfer.getData('text/plain');
@@ -93,21 +112,8 @@ export function Tablero() {
     setDragOverEstado(null);
 
     const postulacion = postulaciones.find((p) => p.id === id);
-    if (!postulacion || postulacion.estado === estado) return;
-
-    const estadoAnterior = postulacion.estado;
-    setPostulaciones((prev) => prev.map((p) => (p.id === id ? { ...p, estado } : p)));
-
-    try {
-      const actualizada = await actualizarEstadoPostulacion(id, estado, postulacion.fecha_postulacion);
-      setPostulaciones((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, fecha_postulacion: actualizada.fecha_postulacion } : p))
-      );
-      setActionError(null);
-    } catch (err) {
-      setActionError(mensajeDeError(err, 'No se pudo actualizar el estado.'));
-      setPostulaciones((prev) => prev.map((p) => (p.id === id ? { ...p, estado: estadoAnterior } : p)));
-    }
+    if (!postulacion) return;
+    await moverEstado(postulacion, estado);
   }
 
   if (loading) {
@@ -182,7 +188,7 @@ export function Tablero() {
                             handleDelete(postulacion);
                           }}
                           aria-label="Eliminar postulación"
-                          className="text-outline hover:text-error opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                          className="p-2.5 md:p-1 -m-2.5 md:-m-1 text-outline hover:text-error opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity cursor-pointer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -196,6 +202,20 @@ export function Tablero() {
                           Sin novedades hace {recordatorios[postulacion.id].dias_inactividad} días
                         </span>
                       )}
+                      {/* El drag nativo no dispara con touch: en mobile se mueve de estado con este select. */}
+                      <select
+                        value={postulacion.estado}
+                        onChange={(e) => moverEstado(postulacion, e.target.value as EstadoPostulacion)}
+                        onClick={(e) => e.stopPropagation()}
+                        aria-label={`Mover "${postulacion.oferta.rol}" a otro estado`}
+                        className="md:hidden mb-sm w-full min-h-11 bg-surface-container-lowest border border-outline-variant rounded-md px-2 text-xs font-medium text-on-surface focus:border-primary outline-none cursor-pointer"
+                      >
+                        {ESTADOS_POSTULACION.map(({ estado, label }) => (
+                          <option key={estado} value={estado}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
                       <div className="flex justify-between items-end mt-auto">
                         <div className="flex items-center gap-1">
                           <span className="w-2 h-2 rounded-full bg-primary"></span>

@@ -37,7 +37,7 @@ function ToggleActivo({
       aria-label={activo ? 'Desactivar criterio' : 'Activar criterio'}
       title={activo ? 'Activo' : 'Inactivo'}
       className={cn(
-        'p-1 rounded-md transition-colors disabled:opacity-50 cursor-pointer',
+        'p-2.5 md:p-1 -m-2.5 md:-m-1 rounded-md transition-colors disabled:opacity-50 cursor-pointer',
         activo ? 'text-primary' : 'text-on-surface-variant'
       )}
     >
@@ -221,7 +221,7 @@ export function Settings() {
         )}
 
         {/* Global Settings Section */}
-        <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm flex items-center justify-between">
+        <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-4">
             <div className="w-10 h-10 bg-surface-container rounded-lg flex items-center justify-center">
               <Timer className="w-5 h-5 text-primary" />
@@ -299,12 +299,12 @@ export function Settings() {
                       onClick={() => handleToggleActivo(c)}
                     />
                   </div>
-                  <div className="col-span-2 flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="col-span-2 flex justify-end opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <button
                       type="button"
                       disabled={savingIds.has(c.id)}
                       onClick={() => handleDelete(c)}
-                      className="text-error hover:bg-error-container p-1 rounded-md transition-colors cursor-pointer disabled:opacity-50"
+                      className="text-error hover:bg-error-container p-2.5 md:p-1 -m-2.5 md:-m-1 rounded-md transition-colors cursor-pointer disabled:opacity-50"
                     >
                       <Trash2 className="w-4.5 h-4.5" />
                     </button>
@@ -359,7 +359,7 @@ export function Settings() {
                   <div
                     key={c.id}
                     className={cn(
-                      'flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-surface-container-low transition-colors group',
+                      'flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg hover:bg-surface-container-low transition-colors group',
                       !c.activo && 'opacity-50'
                     )}
                   >
@@ -387,7 +387,7 @@ export function Settings() {
                         type="button"
                         disabled={savingIds.has(c.id)}
                         onClick={() => handleDelete(c)}
-                        className="text-error hover:bg-error-container p-1 rounded-md transition-colors cursor-pointer opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                        className="text-error hover:bg-error-container p-2.5 md:p-1 -m-2.5 md:-m-1 rounded-md transition-colors cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-50"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -444,7 +444,7 @@ export function Settings() {
                   <div
                     key={c.id}
                     className={cn(
-                      'flex items-center justify-between gap-2 p-2 rounded-lg border border-outline-variant bg-surface-bright group',
+                      'flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg border border-outline-variant bg-surface-bright group',
                       !c.activo && 'opacity-50'
                     )}
                   >
@@ -471,7 +471,7 @@ export function Settings() {
                         type="button"
                         disabled={savingIds.has(c.id)}
                         onClick={() => handleDelete(c)}
-                        className="text-error hover:bg-error-container p-1 rounded-md transition-colors cursor-pointer opacity-0 group-hover:opacity-100 disabled:opacity-50"
+                        className="text-error hover:bg-error-container p-2.5 md:p-1 -m-2.5 md:-m-1 rounded-md transition-colors cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-50"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
