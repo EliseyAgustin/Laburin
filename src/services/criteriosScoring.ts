@@ -5,6 +5,16 @@ import type { Modalidad } from '@/types/oferta';
 
 export type CategoriaCriterio = 'stack' | 'modalidad' | 'ubicacion';
 
+// criterios_scoring.peso es numeric(5,2) en la base (tope real ~999.99); este rango es el que
+// tiene sentido de producto para un "peso" de scoring, no un límite técnico.
+export const PESO_MINIMO = 0;
+export const PESO_MAXIMO = 999;
+
+export function clampPeso(valor: number): number {
+  if (Number.isNaN(valor)) return PESO_MINIMO;
+  return Math.min(PESO_MAXIMO, Math.max(PESO_MINIMO, valor));
+}
+
 export const MODALIDAD_LABEL: Record<Modalidad, string> = {
   remoto: 'Remoto',
   hibrido: 'Híbrido',

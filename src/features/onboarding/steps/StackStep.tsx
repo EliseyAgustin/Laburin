@@ -75,6 +75,7 @@ export function StackStep({ value, onChange }: StackStepProps) {
       <div className="flex gap-2">
         <input
           type="text"
+          maxLength={50}
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onFocus={scrollFieldIntoView}

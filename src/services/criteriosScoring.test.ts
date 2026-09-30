@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { construirCriterio } from '@/services/criteriosScoring';
+import { clampPeso, construirCriterio, PESO_MAXIMO, PESO_MINIMO } from '@/services/criteriosScoring';
 
 describe('construirCriterio', () => {
   it('arma un criterio "contiene" sobre stack_tecnologico para la categoría stack', () => {
@@ -39,5 +39,29 @@ describe('construirCriterio', () => {
       rango_max: null,
       activo: true,
     });
+  });
+});
+
+describe('clampPeso', () => {
+  it('deja pasar un valor dentro del rango sin tocarlo', () => {
+    expect(clampPeso(15)).toBe(15);
+    expect(clampPeso(0)).toBe(0);
+  });
+
+  it('recorta un valor negativo al mínimo', () => {
+    expect(clampPeso(-50)).toBe(PESO_MINIMO);
+  });
+
+  it('recorta un valor gigante al máximo', () => {
+    expect(clampPeso(999999999)).toBe(PESO_MAXIMO);
+  });
+
+  it('un NaN (campo vacío al guardar) cae en el mínimo, no rompe el guardado', () => {
+    expect(clampPeso(Number.NaN)).toBe(PESO_MINIMO);
+  });
+
+  it('los bordes exactos del rango quedan igual', () => {
+    expect(clampPeso(PESO_MINIMO)).toBe(PESO_MINIMO);
+    expect(clampPeso(PESO_MAXIMO)).toBe(PESO_MAXIMO);
   });
 });

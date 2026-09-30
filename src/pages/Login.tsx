@@ -96,6 +96,7 @@ export function Login() {
           <input
             type="email"
             required
+            maxLength={254}
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -111,6 +112,7 @@ export function Login() {
               type={showPassword ? 'text' : 'password'}
               required
               minLength={6}
+              maxLength={128}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}

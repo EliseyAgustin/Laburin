@@ -4,11 +4,14 @@ import { mensajeDeError } from '@/lib/errores';
 import { cn } from '@/lib/utils';
 import {
   actualizarCriterio,
+  clampPeso,
   construirCriterio,
   crearCriterio,
   eliminarCriterio,
   listarCriterios,
   MODALIDAD_LABEL,
+  PESO_MAXIMO,
+  PESO_MINIMO,
 } from '@/services/criteriosScoring';
 import type { CriterioScoring } from '@/types/criterioScoring';
 import type { Modalidad } from '@/types/oferta';
@@ -52,6 +55,11 @@ export function Settings() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [savingIds, setSavingIds] = useState<Set<string>>(new Set());
+  // Texto crudo que el usuario está escribiendo en el peso de un criterio existente, por id.
+  // Separado de criterios[].peso para poder dejar el campo momentáneamente vacío mientras edita
+  // (Number('') es 0, no NaN: si escribiéramos directo sobre el criterio, el input controlado
+  // se repintaba a "0" antes de que el usuario terminara de borrar).
+  const [pesoDrafts, setPesoDrafts] = useState<Record<string, string>>({});
 
   const [stackDraft, setStackDraft] = useState('');
   const [stackPesoDraft, setStackPesoDraft] = useState('10');
@@ -87,17 +95,28 @@ export function Settings() {
     });
   }
 
-  function handlePesoChange(id: string, valor: string) {
-    const peso = Number(valor);
-    setCriterios((prev) => prev.map((c) => (c.id === id ? { ...c, peso: Number.isNaN(peso) ? c.peso : peso } : c)));
+  function valorPesoMostrado(criterio: CriterioScoring): string {
+    return pesoDrafts[criterio.id] ?? String(criterio.peso);
   }
 
-  async function handlePesoBlur(criterio: CriterioScoring, valorOriginal: number) {
-    if (criterio.peso === valorOriginal || Number.isNaN(criterio.peso)) return;
+  function handlePesoChange(id: string, valor: string) {
+    setPesoDrafts((prev) => ({ ...prev, [id]: valor }));
+  }
+
+  async function handlePesoBlur(criterio: CriterioScoring) {
+    const draft = pesoDrafts[criterio.id];
+    setPesoDrafts((prev) => {
+      const { [criterio.id]: _quitado, ...resto } = prev;
+      return resto;
+    });
+    if (draft === undefined) return;
+
+    const peso = clampPeso(Number(draft));
+    if (peso === criterio.peso) return;
 
     marcarGuardando(criterio.id, true);
     try {
-      const actualizado = await actualizarCriterio(criterio.id, { peso: criterio.peso });
+      const actualizado = await actualizarCriterio(criterio.id, { peso });
       setCriterios((prev) => prev.map((c) => (c.id === actualizado.id ? actualizado : c)));
       setActionError(null);
     } catch (err) {
@@ -144,7 +163,7 @@ export function Settings() {
 
     setAgregando(true);
     try {
-      const nuevo = await crearCriterio(construirCriterio('stack', valor, peso));
+      const nuevo = await crearCriterio(construirCriterio('stack', valor, clampPeso(peso)));
       setCriterios((prev) => [...prev, nuevo]);
       setStackDraft('');
       setStackPesoDraft('10');
@@ -164,7 +183,7 @@ export function Settings() {
 
     setAgregando(true);
     try {
-      const nuevo = await crearCriterio(construirCriterio('modalidad', modalidadDraft, peso));
+      const nuevo = await crearCriterio(construirCriterio('modalidad', modalidadDraft, clampPeso(peso)));
       setCriterios((prev) => [...prev, nuevo]);
       setModalidadDraft('');
       setModalidadPesoDraft('10');
@@ -185,7 +204,7 @@ export function Settings() {
 
     setAgregando(true);
     try {
-      const nuevo = await crearCriterio(construirCriterio('ubicacion', valor, peso));
+      const nuevo = await crearCriterio(construirCriterio('ubicacion', valor, clampPeso(peso)));
       setCriterios((prev) => [...prev, nuevo]);
       setUbicacionDraft('');
       setUbicacionPesoDraft('10');
@@ -298,10 +317,13 @@ export function Settings() {
                   <div className="col-span-3 flex justify-center">
                     <input
                       type="number"
-                      value={c.peso}
+                      min={PESO_MINIMO}
+                      max={PESO_MAXIMO}
+                      value={valorPesoMostrado(c)}
                       disabled={savingIds.has(c.id)}
                       onChange={(e) => handlePesoChange(c.id, e.target.value)}
-                      onBlur={() => handlePesoBlur(c, c.peso)}
+                      onFocus={(e) => e.target.select()}
+                      onBlur={() => handlePesoBlur(c)}
                       className="w-16 text-center text-sm text-on-surface bg-transparent border-b border-outline-variant focus:border-primary focus:outline-none pb-1 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
                   </div>
@@ -331,6 +353,7 @@ export function Settings() {
               <div className="flex items-center gap-4">
                 <input
                   type="text"
+                  maxLength={50}
                   value={stackDraft}
                   onChange={(e) => setStackDraft(e.target.value)}
                   placeholder="Nueva tecnología..."
@@ -338,8 +361,11 @@ export function Settings() {
                 />
                 <input
                   type="number"
+                  min={PESO_MINIMO}
+                  max={PESO_MAXIMO}
                   value={stackPesoDraft}
                   onChange={(e) => setStackPesoDraft(e.target.value)}
+                  onFocus={(e) => e.target.select()}
                   placeholder="Peso"
                   className="w-24 bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
@@ -384,10 +410,13 @@ export function Settings() {
                       <div className="flex items-center gap-1 bg-surface border border-outline-variant rounded-md px-2 py-1 focus-within:border-primary">
                         <input
                           type="number"
-                          value={c.peso}
+                          min={PESO_MINIMO}
+                          max={PESO_MAXIMO}
+                          value={valorPesoMostrado(c)}
                           disabled={savingIds.has(c.id)}
                           onChange={(e) => handlePesoChange(c.id, e.target.value)}
-                          onBlur={() => handlePesoBlur(c, c.peso)}
+                          onFocus={(e) => e.target.select()}
+                          onBlur={() => handlePesoBlur(c)}
                           className="w-10 text-center text-xs font-medium text-primary bg-transparent border-none p-0 outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
                         <span className="text-outline text-xs">pts</span>
@@ -425,8 +454,11 @@ export function Settings() {
                     </select>
                     <input
                       type="number"
+                      min={PESO_MINIMO}
+                      max={PESO_MAXIMO}
                       value={modalidadPesoDraft}
                       onChange={(e) => setModalidadPesoDraft(e.target.value)}
+                      onFocus={(e) => e.target.select()}
                       placeholder="Pts"
                       className="w-16 bg-surface-container-lowest border border-outline-variant rounded-lg px-2 py-2 text-sm focus:border-primary focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     />
@@ -469,10 +501,13 @@ export function Settings() {
                         <span className="text-outline text-xs">+</span>
                         <input
                           type="number"
-                          value={c.peso}
+                          min={PESO_MINIMO}
+                          max={PESO_MAXIMO}
+                          value={valorPesoMostrado(c)}
                           disabled={savingIds.has(c.id)}
                           onChange={(e) => handlePesoChange(c.id, e.target.value)}
-                          onBlur={() => handlePesoBlur(c, c.peso)}
+                          onFocus={(e) => e.target.select()}
+                          onBlur={() => handlePesoBlur(c)}
                           className="w-10 text-center text-xs font-medium text-on-secondary-container bg-transparent border-none p-0 outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                         />
                         <span className="text-outline text-xs">pts</span>
@@ -497,6 +532,7 @@ export function Settings() {
               <form onSubmit={handleAddUbicacion} className="p-2 border-t border-outline-variant bg-surface rounded-b-xl flex gap-2">
                 <input
                   type="text"
+                  maxLength={100}
                   value={ubicacionDraft}
                   onChange={(e) => setUbicacionDraft(e.target.value)}
                   placeholder="Ej: Zona Norte"
@@ -504,8 +540,11 @@ export function Settings() {
                 />
                 <input
                   type="number"
+                  min={PESO_MINIMO}
+                  max={PESO_MAXIMO}
                   value={ubicacionPesoDraft}
                   onChange={(e) => setUbicacionPesoDraft(e.target.value)}
+                  onFocus={(e) => e.target.select()}
                   placeholder="Pts"
                   className="w-16 bg-surface-container-lowest border border-outline-variant rounded-lg px-2 py-2 text-sm focus:border-primary focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />

@@ -366,6 +366,7 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
                     <textarea
                       value={notas}
                       onChange={(e) => setNotas(e.target.value)}
+                      maxLength={500}
                       rows={2}
                       placeholder="Detalles de la interacción..."
                       className="mt-1 w-full bg-surface-container-lowest border border-outline-variant rounded-md py-2 px-3 text-sm font-normal text-on-surface focus:border-primary outline-none resize-none"

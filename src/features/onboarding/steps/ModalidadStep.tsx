@@ -52,6 +52,7 @@ export function ModalidadStep({
         Ubicación
         <input
           type="text"
+          maxLength={100}
           value={ubicacion}
           onChange={(e) => onUbicacionChange(e.target.value)}
           onFocus={scrollFieldIntoView}
