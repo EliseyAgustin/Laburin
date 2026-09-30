@@ -1,6 +1,6 @@
 import { useState, type KeyboardEvent } from 'react';
 import { X } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, scrollFieldIntoView } from '@/lib/utils';
 
 const STACK_SUGERIDO = [
   'React',
@@ -77,6 +77,7 @@ export function StackStep({ value, onChange }: StackStepProps) {
           type="text"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
+          onFocus={scrollFieldIntoView}
           onKeyDown={handleKeyDown}
           placeholder="Otra tecnología…"
           className="flex-1 bg-surface border border-outline-variant rounded-lg px-3 py-2 text-sm text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all"

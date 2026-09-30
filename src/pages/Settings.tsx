@@ -59,6 +59,7 @@ export function Settings() {
   const [modalidadPesoDraft, setModalidadPesoDraft] = useState('10');
   const [ubicacionDraft, setUbicacionDraft] = useState('');
   const [ubicacionPesoDraft, setUbicacionPesoDraft] = useState('10');
+  const [agregando, setAgregando] = useState(false);
 
   useEffect(() => {
     refetch();
@@ -136,10 +137,12 @@ export function Settings() {
 
   async function handleAddStack(e: FormEvent) {
     e.preventDefault();
+    if (agregando) return;
     const valor = stackDraft.trim();
     const peso = Number(stackPesoDraft);
     if (!valor || Number.isNaN(peso)) return;
 
+    setAgregando(true);
     try {
       const nuevo = await crearCriterio(construirCriterio('stack', valor, peso));
       setCriterios((prev) => [...prev, nuevo]);
@@ -148,14 +151,18 @@ export function Settings() {
       setActionError(null);
     } catch (err) {
       setActionError(mensajeDeError(err, 'No se pudo crear el criterio.'));
+    } finally {
+      setAgregando(false);
     }
   }
 
   async function handleAddModalidad(e: FormEvent) {
     e.preventDefault();
+    if (agregando) return;
     const peso = Number(modalidadPesoDraft);
     if (!modalidadDraft || Number.isNaN(peso)) return;
 
+    setAgregando(true);
     try {
       const nuevo = await crearCriterio(construirCriterio('modalidad', modalidadDraft, peso));
       setCriterios((prev) => [...prev, nuevo]);
@@ -164,15 +171,19 @@ export function Settings() {
       setActionError(null);
     } catch (err) {
       setActionError(mensajeDeError(err, 'No se pudo crear el criterio.'));
+    } finally {
+      setAgregando(false);
     }
   }
 
   async function handleAddUbicacion(e: FormEvent) {
     e.preventDefault();
+    if (agregando) return;
     const valor = ubicacionDraft.trim();
     const peso = Number(ubicacionPesoDraft);
     if (!valor || Number.isNaN(peso)) return;
 
+    setAgregando(true);
     try {
       const nuevo = await crearCriterio(construirCriterio('ubicacion', valor, peso));
       setCriterios((prev) => [...prev, nuevo]);
@@ -181,6 +192,8 @@ export function Settings() {
       setActionError(null);
     } catch (err) {
       setActionError(mensajeDeError(err, 'No se pudo crear el criterio.'));
+    } finally {
+      setAgregando(false);
     }
   }
 
@@ -332,7 +345,8 @@ export function Settings() {
                 />
                 <button
                   type="submit"
-                  className="bg-surface-container-low text-primary border border-outline-variant hover:border-primary hover:bg-surface-container transition-colors rounded-lg p-2 flex items-center justify-center cursor-pointer"
+                  disabled={agregando}
+                  className="bg-surface-container-low text-primary border border-outline-variant hover:border-primary hover:bg-surface-container transition-colors rounded-lg p-2 flex items-center justify-center cursor-pointer disabled:opacity-50"
                 >
                   <Plus className="w-5 h-5" />
                 </button>
@@ -418,7 +432,8 @@ export function Settings() {
                     />
                     <button
                       type="submit"
-                      className="bg-surface-container-low text-primary border border-outline-variant rounded-lg px-2 py-2 hover:bg-surface-container transition-colors cursor-pointer"
+                      disabled={agregando}
+                      className="bg-surface-container-low text-primary border border-outline-variant rounded-lg px-2 py-2 hover:bg-surface-container transition-colors cursor-pointer disabled:opacity-50"
                     >
                       <Plus className="w-5 h-5" />
                     </button>
@@ -496,7 +511,8 @@ export function Settings() {
                 />
                 <button
                   type="submit"
-                  className="bg-surface-container-low text-primary border border-outline-variant rounded-lg px-2 py-2 hover:bg-surface-container transition-colors cursor-pointer"
+                  disabled={agregando}
+                  className="bg-surface-container-low text-primary border border-outline-variant rounded-lg px-2 py-2 hover:bg-surface-container transition-colors cursor-pointer disabled:opacity-50"
                 >
                   <Plus className="w-5 h-5" />
                 </button>

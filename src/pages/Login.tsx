@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { generarDatosEjemplo } from '@/lib/datosEjemplo';
 import { calcularFortalezaPassword, type NivelFortalezaPassword } from '@/lib/passwordStrength';
-import { cn } from '@/lib/utils';
+import { cn, scrollFieldIntoView } from '@/lib/utils';
 import logoTexto from '@/assets/logo/laburin-logo-texto.svg';
 
 const ESTILO_NIVEL: Record<NivelFortalezaPassword, { label: string; barra: string; texto: string; barras: number }> = {
@@ -72,7 +72,7 @@ export function Login() {
   const fortaleza = mode === 'signup' ? calcularFortalezaPassword(password) : null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface p-margin relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-surface p-margin relative">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute -top-32 -left-24 w-96 h-96 rounded-full bg-primary/25 blur-3xl" />
         <div className="absolute -bottom-40 -right-20 w-120 h-120 rounded-full bg-tertiary/15 blur-3xl" />
@@ -99,6 +99,7 @@ export function Login() {
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onFocus={scrollFieldIntoView}
             className="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all"
           />
         </label>
@@ -113,6 +114,7 @@ export function Login() {
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              onFocus={scrollFieldIntoView}
               className="w-full bg-surface border border-outline-variant rounded-lg pl-3 pr-11 py-2 text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all"
             />
             <button
