@@ -130,7 +130,7 @@ export function Analytics() {
   const axisTick = { fontSize: 12, fill: colors.axisText };
 
   return (
-    <div className="flex-1 overflow-y-auto p-margin h-full bg-background">
+    <div className="flex-1 overflow-y-auto p-margin h-full">
       <div className="max-w-7xl mx-auto space-y-6">
         <h2 className="text-4xl font-heading font-bold tracking-tight text-on-background mb-8">Analytics</h2>
 
