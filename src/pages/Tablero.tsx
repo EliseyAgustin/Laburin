@@ -118,14 +118,14 @@ export function Tablero() {
 
   if (loading) {
     return (
-      <div className="flex-1 h-full bg-surface-bright p-lg flex items-center justify-center text-on-surface-variant text-sm">
+      <div className="flex-1 h-full p-lg flex items-center justify-center text-on-surface-variant text-sm">
         Cargando postulaciones…
       </div>
     );
   }
 
   return (
-    <div className="flex-1 h-full bg-surface-bright p-lg overflow-x-auto relative flex flex-col gap-sm">
+    <div className="flex-1 h-full p-lg overflow-x-auto relative flex flex-col gap-sm">
       {loadError && (
         <div className="p-4 bg-error-container text-on-error-container rounded-lg text-sm shrink-0">
           {loadError}

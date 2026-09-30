@@ -197,7 +197,7 @@ export function Offers() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto bg-surface-container-lowest p-margin h-full">
+    <div className="flex-1 overflow-y-auto p-margin h-full">
       <div className="max-w-7xl mx-auto">
 
         {/* Filters Row */}
