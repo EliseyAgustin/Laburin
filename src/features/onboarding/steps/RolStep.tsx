@@ -1,3 +1,5 @@
+import { scrollFieldIntoView } from '@/lib/utils';
+
 const ROLES_SUGERIDOS = [
   'Frontend Developer',
   'Backend Developer',
@@ -30,6 +32,7 @@ export function RolStep({ value, onChange }: RolStepProps) {
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onFocus={scrollFieldIntoView}
         placeholder="Ej: Frontend Developer"
         className="w-full bg-surface border border-outline-variant rounded-lg px-4 py-3 text-on-surface text-base focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all"
       />

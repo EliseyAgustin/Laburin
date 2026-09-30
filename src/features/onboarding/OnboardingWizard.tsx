@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { mensajeDeError } from '@/lib/errores';
 import { completarOnboarding, omitirOnboarding } from '@/services/onboarding';
@@ -24,6 +24,19 @@ export function OnboardingWizard() {
   const [seniority, setSeniority] = useState<Seniority | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  // Un segundo tap rápido en "Continuar"/"Atrás" (frecuente en mobile) podía disparar otro cambio
+  // de paso antes de que el anterior terminara de renderizar, dejando dos pasos superpuestos.
+  useEffect(() => {
+    setIsTransitioning(false);
+  }, [step]);
+
+  function goToStep(delta: number) {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setStep((s) => Math.min(TOTAL_STEPS, Math.max(1, s + delta)));
+  }
 
   async function finish() {
     setSaving(true);
@@ -99,8 +112,8 @@ export function OnboardingWizard() {
         <div className="flex justify-between items-center pt-2">
           <button
             type="button"
-            onClick={() => setStep((s) => Math.max(1, s - 1))}
-            disabled={step === 1 || saving}
+            onClick={() => goToStep(-1)}
+            disabled={step === 1 || saving || isTransitioning}
             className="px-4 py-2 rounded-lg text-on-surface-variant text-sm font-medium hover:bg-surface-container-high transition-colors cursor-pointer disabled:opacity-0"
           >
             Atrás
@@ -109,8 +122,9 @@ export function OnboardingWizard() {
           {step < TOTAL_STEPS ? (
             <button
               type="button"
-              onClick={() => setStep((s) => s + 1)}
-              className="bg-primary text-on-primary text-sm font-medium px-6 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-all cursor-pointer"
+              onClick={() => goToStep(1)}
+              disabled={isTransitioning}
+              className="bg-primary text-on-primary text-sm font-medium px-6 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
             >
               Continuar
             </button>

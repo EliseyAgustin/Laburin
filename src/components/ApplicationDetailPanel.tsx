@@ -61,6 +61,7 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
   const [fechaHora, setFechaHora] = useState(() => datetimeLocalValue(new Date()));
   const [notas, setNotas] = useState('');
   const [guardando, setGuardando] = useState(false);
+  const [resolviendo, setResolviendo] = useState(false);
 
   useEffect(() => {
     if (!postulacionId) return;
@@ -155,8 +156,9 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
   }
 
   async function handleResolverRecordatorio() {
-    if (!recordatorio || !postulacionId) return;
+    if (!recordatorio || !postulacionId || resolviendo) return;
 
+    setResolviendo(true);
     try {
       await resolverRecordatorio(recordatorio.id);
       setRecordatorio(null);
@@ -164,6 +166,8 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
       setError(null);
     } catch (err) {
       setError(mensajeDeError(err, 'No se pudo resolver el recordatorio.'));
+    } finally {
+      setResolviendo(false);
     }
   }
 
@@ -221,7 +225,8 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
                 <button
                   type="button"
                   onClick={handleResolverRecordatorio}
-                  className="shrink-0 text-xs font-semibold underline hover:no-underline cursor-pointer"
+                  disabled={resolviendo}
+                  className="shrink-0 text-xs font-semibold underline hover:no-underline cursor-pointer disabled:opacity-50"
                 >
                   Marcar como resuelto
                 </button>

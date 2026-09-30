@@ -78,7 +78,7 @@ export function Offers() {
     setImportMessage(null);
     try {
       const resultado = await importarOfertasRemotas(ofertas);
-      setOfertas((prev) => [...resultado.insertadas, ...prev]);
+      await refetch();
 
       const partes = [`${resultado.insertadas.length} ofertas nuevas importadas`];
       if (resultado.omitidasPorDuplicado > 0) {

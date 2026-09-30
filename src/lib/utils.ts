@@ -1,8 +1,15 @@
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import type { FocusEvent } from 'react';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+// En mobile el teclado puede tapar el campo enfocado en pantallas cortas (Login/Onboarding);
+// el navegador no siempre re-scrollea solo, sobre todo en Safari iOS.
+export function scrollFieldIntoView(e: FocusEvent<HTMLElement>) {
+  e.currentTarget.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }
 
 const dos = (n: number) => String(n).padStart(2, '0');
