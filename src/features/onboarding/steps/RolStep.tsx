@@ -30,6 +30,7 @@ export function RolStep({ value, onChange }: RolStepProps) {
       <input
         list="roles-sugeridos"
         type="text"
+        maxLength={100}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={scrollFieldIntoView}

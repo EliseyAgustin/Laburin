@@ -227,6 +227,7 @@ export function Offers() {
               <MapPin className="absolute left-2 top-2 text-on-surface-variant w-4.5 h-4.5" />
               <input
                 type="text"
+                maxLength={100}
                 value={ubicacionDraft}
                 onChange={(e) => setUbicacionDraft(e.target.value)}
                 placeholder="Ciudad o País"

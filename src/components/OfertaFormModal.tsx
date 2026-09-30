@@ -86,7 +86,8 @@ export function OfertaFormModal({ oferta, onClose, onSubmit }: OfertaFormModalPr
           <button
             type="button"
             onClick={onClose}
-            className="w-11 h-11 md:w-8 md:h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer"
+            disabled={saving}
+            className="w-11 h-11 md:w-8 md:h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <X className="w-5 h-5" />
           </button>
@@ -99,6 +100,7 @@ export function OfertaFormModal({ oferta, onClose, onSubmit }: OfertaFormModalPr
               <input
                 type="text"
                 required
+                maxLength={100}
                 value={empresa}
                 onChange={(e) => setEmpresa(e.target.value)}
                 className="bg-surface border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all"
@@ -109,6 +111,7 @@ export function OfertaFormModal({ oferta, onClose, onSubmit }: OfertaFormModalPr
               <input
                 type="text"
                 required
+                maxLength={100}
                 value={rol}
                 onChange={(e) => setRol(e.target.value)}
                 className="bg-surface border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all"
@@ -121,6 +124,7 @@ export function OfertaFormModal({ oferta, onClose, onSubmit }: OfertaFormModalPr
               Ubicación
               <input
                 type="text"
+                maxLength={100}
                 value={ubicacion}
                 onChange={(e) => setUbicacion(e.target.value)}
                 placeholder="Ej: CABA, Argentina"
@@ -176,6 +180,7 @@ export function OfertaFormModal({ oferta, onClose, onSubmit }: OfertaFormModalPr
               ))}
               <input
                 type="text"
+                maxLength={50}
                 value={stackDraft}
                 onChange={(e) => setStackDraft(e.target.value)}
                 onKeyDown={handleStackKeyDown}
@@ -192,7 +197,8 @@ export function OfertaFormModal({ oferta, onClose, onSubmit }: OfertaFormModalPr
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-lg text-on-surface-variant text-sm font-medium hover:bg-surface-container-high transition-colors cursor-pointer"
+              disabled={saving}
+              className="px-4 py-2 rounded-lg text-on-surface-variant text-sm font-medium hover:bg-surface-container-high transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancelar
             </button>
