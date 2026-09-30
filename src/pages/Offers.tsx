@@ -323,7 +323,7 @@ export function Offers() {
           </div>
         ) : (
           <>
-          <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-3 mb-4 px-4 py-3 bg-surface rounded-xl border border-outline-variant shadow-sm">
+          <div className="sticky top-0 z-10 flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-6 px-4 py-3 bg-surface rounded-xl border border-outline-variant shadow-sm">
             <label className="flex items-center gap-2 text-sm text-on-surface-variant cursor-pointer select-none">
               <input
                 type="checkbox"
@@ -338,28 +338,30 @@ export function Offers() {
             </label>
 
             {idsSeleccionados.length > 0 && (
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <span className="text-sm text-on-surface-variant">
                   {idsSeleccionados.length === 1 ? '1 seleccionada' : `${idsSeleccionados.length} seleccionadas`}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setSeleccionadas(new Set())}
-                  className="text-sm text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
-                >
-                  Deseleccionar
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setResultadoBorrado(null);
-                    setConfirmandoBorrado(true);
-                  }}
-                  className="bg-error text-on-error text-sm font-medium px-4 py-2 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Eliminar seleccionadas ({idsSeleccionados.length})
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setSeleccionadas(new Set())}
+                    className="min-h-11 px-2 -mx-2 flex items-center text-sm text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
+                  >
+                    Deseleccionar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setResultadoBorrado(null);
+                      setConfirmandoBorrado(true);
+                    }}
+                    className="min-h-11 bg-error text-on-error text-sm font-medium px-4 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Eliminar seleccionadas ({idsSeleccionados.length})
+                  </button>
+                </div>
               </div>
             )}
           </div>
