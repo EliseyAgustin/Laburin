@@ -29,7 +29,7 @@ export function SeniorityStep({ value, onChange }: SeniorityStepProps) {
               type="button"
               onClick={() => onChange(active ? null : opt.value)}
               className={cn(
-                'rounded-lg border p-4 text-center text-sm font-medium transition-colors cursor-pointer',
+                'rounded-lg border px-2 py-4 md:p-4 text-center text-xs md:text-sm font-medium transition-colors cursor-pointer',
                 active
                   ? 'border-primary bg-primary-container text-on-primary-container'
                   : 'border-outline-variant bg-surface text-on-surface-variant hover:border-primary'

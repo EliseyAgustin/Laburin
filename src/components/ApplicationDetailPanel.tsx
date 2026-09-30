@@ -199,7 +199,7 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
         <button
           onClick={onClose}
           aria-label="Cerrar ficha"
-          className="w-8 h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer"
+          className="w-11 h-11 md:w-8 md:h-8 rounded-full flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -300,7 +300,7 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
                               type="button"
                               onClick={() => handleEliminarInteraccion(interaccion)}
                               aria-label="Eliminar interacción"
-                              className="text-outline hover:text-error opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                              className="p-2.5 md:p-1 -m-2.5 md:-m-1 text-outline hover:text-error opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity cursor-pointer"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -330,7 +330,7 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
                   className="mt-6 bg-surface border border-outline-variant rounded-lg p-4 shadow-sm"
                 >
                   <h4 className="text-xs font-medium text-on-surface mb-4">Nueva interacción</h4>
-                  <div className="grid grid-cols-2 gap-2 mb-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
                     <label className="block text-[11px] font-semibold text-on-surface-variant">
                       Tipo
                       <select

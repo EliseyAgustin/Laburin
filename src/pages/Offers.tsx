@@ -442,14 +442,14 @@ export function Offers() {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => openEditForm(oferta)}
-                      className="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer"
+                      className="p-2.5 md:p-2 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors cursor-pointer"
                       aria-label="Editar oferta"
                     >
                       <Pencil className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDelete(oferta)}
-                      className="p-2 rounded-lg text-error hover:bg-error-container transition-colors cursor-pointer"
+                      className="p-2.5 md:p-2 rounded-lg text-error hover:bg-error-container transition-colors cursor-pointer"
                       aria-label="Eliminar oferta"
                     >
                       <Trash2 className="w-4 h-4" />

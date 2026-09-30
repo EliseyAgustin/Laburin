@@ -67,7 +67,7 @@ function ChartCard({
   children: ReactNode;
 }) {
   return (
-    <div className={`bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col h-100 ${className ?? ''}`}>
+    <div className={`bg-surface-container-lowest p-6 rounded-xl border border-outline-variant shadow-sm flex flex-col h-72 md:h-100 ${className ?? ''}`}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <h3 className="text-xl font-heading font-semibold text-on-surface">{title}</h3>
