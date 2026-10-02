@@ -12,8 +12,13 @@ export function AppLayout() {
     setMobileNavOpen(false);
   }, [location.pathname]);
 
-  let topbarTitle = undefined;
-  if (location.pathname === '/ofertas') topbarTitle = 'Explorar Ofertas';
+  const titulosPorRuta: Record<string, string> = {
+    '/ofertas': 'Explorar Ofertas',
+    '/tablero': 'Tablero',
+    '/analytics': 'Analytics',
+    '/configuracion': 'Configuración',
+  };
+  const topbarTitle = titulosPorRuta[location.pathname];
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
