@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Briefcase, LayoutDashboard, BarChart2, Settings, LogOut, X } from 'lucide-react';
+import { Briefcase, LayoutDashboard, BarChart2, Settings, LogOut, X, UserCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { CuentaModal } from '@/components/CuentaModal';
 import logoIcono from '@/assets/logo/laburin-logo-icono.svg';
 
 const navItems = [
@@ -20,6 +21,7 @@ interface SidebarProps {
 export function Sidebar({ open, onClose }: SidebarProps) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const [cuentaAbierta, setCuentaAbierta] = useState(false);
 
   // Evita que el fondo scrollee detrás del drawer mientras está abierto en mobile.
   useEffect(() => {
@@ -89,17 +91,27 @@ export function Sidebar({ open, onClose }: SidebarProps) {
         </nav>
 
         {/* Footer */}
-        <div className="mt-auto pt-4 border-t border-outline-variant">
+        <div className="mt-auto pt-4 border-t border-outline-variant space-y-1">
+          <button
+            type="button"
+            onClick={() => setCuentaAbierta(true)}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer"
+          >
+            <UserCircle className="w-5 h-5" />
+            <span>Mi cuenta</span>
+          </button>
           <button
             type="button"
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors cursor-pointer"
           >
             <LogOut className="w-5 h-5" />
             <span>Cerrar Sesión</span>
           </button>
         </div>
       </aside>
+
+      {cuentaAbierta && <CuentaModal onClose={() => setCuentaAbierta(false)} />}
     </>
   );
 }
