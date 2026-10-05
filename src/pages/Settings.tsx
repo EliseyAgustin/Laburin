@@ -13,6 +13,14 @@ import {
   PESO_MAXIMO,
   PESO_MINIMO,
 } from '@/services/criteriosScoring';
+import {
+  DIAS_INACTIVIDAD_DEFECTO,
+  DIAS_INACTIVIDAD_MAX,
+  DIAS_INACTIVIDAD_MIN,
+  guardarDiasInactividad,
+  obtenerMisDiasInactividad,
+  validarDiasInactividad,
+} from '@/services/recordatorios';
 import type { CriterioScoring } from '@/types/criterioScoring';
 import type { Modalidad } from '@/types/oferta';
 
@@ -69,6 +77,12 @@ export function Settings() {
   const [ubicacionPesoDraft, setUbicacionPesoDraft] = useState('10');
   const [agregando, setAgregando] = useState(false);
 
+  // Mismo patrón que pesoDrafts: texto crudo mientras se escribe, se valida y guarda al salir del campo.
+  const [diasGuardados, setDiasGuardados] = useState(DIAS_INACTIVIDAD_DEFECTO);
+  const [diasDraft, setDiasDraft] = useState<string | null>(null);
+  const [diasError, setDiasError] = useState<string | null>(null);
+  const [guardandoDias, setGuardandoDias] = useState(false);
+
   useEffect(() => {
     refetch();
   }, []);
@@ -76,13 +90,37 @@ export function Settings() {
   async function refetch() {
     setLoading(true);
     try {
-      const data = await listarCriterios();
+      const [data, dias] = await Promise.all([listarCriterios(), obtenerMisDiasInactividad()]);
       setCriterios(data);
+      setDiasGuardados(dias);
       setLoadError(null);
     } catch (err) {
       setLoadError(mensajeDeError(err, 'No se pudieron cargar los criterios.'));
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDiasBlur() {
+    if (diasDraft === null) return;
+    const resultado = validarDiasInactividad(diasDraft);
+    setDiasDraft(null);
+
+    if (resultado.ok === false) {
+      setDiasError(resultado.error);
+      return;
+    }
+    setDiasError(null);
+    if (resultado.valor === diasGuardados) return;
+
+    setGuardandoDias(true);
+    try {
+      setDiasGuardados(await guardarDiasInactividad(resultado.valor));
+      setActionError(null);
+    } catch (err) {
+      setActionError(mensajeDeError(err, 'No se pudo guardar el umbral de inactividad.'));
+    } finally {
+      setGuardandoDias(false);
     }
   }
 
@@ -260,17 +298,33 @@ export function Settings() {
             </div>
             <div>
               <h3 className="text-xl font-heading font-semibold text-on-surface">Umbral de Inactividad</h3>
-              <p className="text-sm text-on-surface-variant">Días antes de considerar una oferta o candidato inactivo.</p>
+              <p className="text-sm text-on-surface-variant">
+                Días sin novedades en una postulación antes de avisarte con un recordatorio.
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             <input
               type="number"
-              defaultValue="30"
+              inputMode="numeric"
+              min={DIAS_INACTIVIDAD_MIN}
+              max={DIAS_INACTIVIDAD_MAX}
+              aria-label="Umbral de inactividad en días"
+              aria-invalid={diasError !== null}
+              value={diasDraft ?? String(diasGuardados)}
+              disabled={guardandoDias}
+              onChange={(e) => setDiasDraft(e.target.value)}
+              onBlur={handleDiasBlur}
+              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
               className="w-20 text-center text-xl font-semibold text-on-surface bg-surface border border-outline-variant rounded-lg px-2 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
             <span className="text-sm font-medium text-on-surface-variant">días</span>
           </div>
+          {diasError && (
+            <p role="alert" className="basis-full text-sm text-error">
+              {diasError}
+            </p>
+          )}
         </div>
 
         {/* Bento Grid Layout for Scoring Criteria */}

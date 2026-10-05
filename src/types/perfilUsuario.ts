@@ -11,11 +11,12 @@ export interface PerfilUsuario {
   ubicacion: string | null;
   seniority: Seniority | null;
   onboarding_completado: boolean;
+  dias_inactividad_recordatorio: number;
   created_at: string;
   updated_at: string;
 }
 
 export type PerfilUsuarioInput = Omit<
   PerfilUsuario,
-  'id' | 'user_id' | 'onboarding_completado' | 'created_at' | 'updated_at'
+  'id' | 'user_id' | 'onboarding_completado' | 'dias_inactividad_recordatorio' | 'created_at' | 'updated_at'
 >;

@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { calcularRecordatoriosPendientes, estadoEsFinal } from '@/services/recordatorios';
+import {
+  calcularRecordatoriosPendientes,
+  DIAS_INACTIVIDAD_DEFECTO,
+  DIAS_INACTIVIDAD_MAX,
+  DIAS_INACTIVIDAD_MIN,
+  estadoEsFinal,
+  estaInactiva,
+  validarDiasInactividad,
+} from '@/services/recordatorios';
 import type { EstadoPostulacion } from '@/types/postulacion';
 
 const AHORA = new Date('2026-09-25T12:00:00Z');
@@ -103,5 +111,71 @@ describe('estadoEsFinal', () => {
     expect(estadoEsFinal('aplicado')).toBe(false);
     expect(estadoEsFinal('en_proceso')).toBe(false);
     expect(estadoEsFinal('entrevista')).toBe(false);
+  });
+});
+
+describe('estaInactiva', () => {
+  const dia = 24 * 60 * 60 * 1000;
+  const desde = (ms: number) => new Date(AHORA.getTime() - ms);
+
+  it.each([1, 7, 30, 90])('umbral %i: exactamente N días no alcanza', (n) => {
+    expect(estaInactiva(desde(n * dia), AHORA, n)).toBe(false);
+  });
+
+  it.each([1, 7, 30, 90])('umbral %i: N días y 1 ms ya es inactiva', (n) => {
+    expect(estaInactiva(desde(n * dia + 1), AHORA, n)).toBe(true);
+  });
+
+  it.each([1, 7, 30, 90])('umbral %i: N-1 días no es inactiva', (n) => {
+    expect(estaInactiva(desde((n - 1) * dia), AHORA, n)).toBe(false);
+  });
+
+  it('acepta la fecha como string ISO', () => {
+    expect(estaInactiva(haceDias(91), AHORA, 90)).toBe(true);
+    expect(estaInactiva(haceDias(89), AHORA, 90)).toBe(false);
+  });
+});
+
+describe('umbral variable en calcularRecordatoriosPendientes', () => {
+  it('umbral 1 y 90 en los extremos', () => {
+    const p = [postulacion({ created_at: haceDias(2) })];
+    expect(calcular({ postulaciones: p, dias: 1 })).toHaveLength(1);
+    expect(calcular({ postulaciones: p, dias: 90 })).toHaveLength(0);
+    const vieja = [postulacion({ created_at: haceDias(91) })];
+    expect(calcular({ postulaciones: vieja, dias: 90 })).toHaveLength(1);
+  });
+
+  // Política: el cambio de umbral solo aplica hacia adelante. Los recordatorios activos no se tocan.
+  it('al bajar el umbral, una postulación que antes no calificaba pasa a generar recordatorio', () => {
+    const p = [postulacion({ created_at: haceDias(5) })];
+    expect(calcular({ postulaciones: p, dias: 7 })).toEqual([]);
+    expect(calcular({ postulaciones: p, dias: 3 })).toEqual([{ postulacion_id: 'p1', dias_inactividad: 5 }]);
+  });
+
+  it('al subir el umbral, un recordatorio activo existente sigue activo y no se genera otro', () => {
+    const activo = [{ postulacion_id: 'p1', estado: 'activo' as const, fecha_resuelto: null }];
+    const p = [postulacion({ created_at: haceDias(10) })];
+    expect(calcular({ postulaciones: p, recordatorios: activo, dias: 7 })).toEqual([]);
+    expect(calcular({ postulaciones: p, recordatorios: activo, dias: 30 })).toEqual([]);
+    // sin recordatorio previo, con el umbral alto tampoco se genera: no hay nada que "recalcular" hacia atrás
+    expect(calcular({ postulaciones: p, dias: 30 })).toEqual([]);
+  });
+});
+
+describe('validarDiasInactividad', () => {
+  it('expone el mismo default que usa el motor', () => {
+    expect(DIAS_INACTIVIDAD_DEFECTO).toBe(7);
+    expect(DIAS_INACTIVIDAD_MIN).toBe(1);
+    expect(DIAS_INACTIVIDAD_MAX).toBe(90);
+  });
+
+  it('acepta enteros entre 1 y 90', () => {
+    expect(validarDiasInactividad('1')).toEqual({ ok: true, valor: 1 });
+    expect(validarDiasInactividad(' 90 ')).toEqual({ ok: true, valor: 90 });
+    expect(validarDiasInactividad('14')).toEqual({ ok: true, valor: 14 });
+  });
+
+  it.each(['', '  ', '0', '91', '-3', '2.5', 'abc', '1e1'])('rechaza %j', (texto) => {
+    expect(validarDiasInactividad(texto).ok).toBe(false);
   });
 });

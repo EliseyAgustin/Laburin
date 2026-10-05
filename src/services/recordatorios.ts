@@ -3,9 +3,29 @@ import type { Interaccion } from '@/types/interaccion';
 import type { EstadoPostulacion, Postulacion } from '@/types/postulacion';
 import type { Recordatorio } from '@/types/recordatorio';
 
-export const DIAS_INACTIVIDAD_RECORDATORIO = 7;
+// Fuente única del default: la usan el motor, la UI de Configuración y (por contrato) el default de la columna en la base.
+export const DIAS_INACTIVIDAD_DEFECTO = 7;
+export const DIAS_INACTIVIDAD_MIN = 1;
+export const DIAS_INACTIVIDAD_MAX = 90;
 
 const MS_POR_DIA = 24 * 60 * 60 * 1000;
+
+export type ResultadoValidacionDias = { ok: true; valor: number } | { ok: false; error: string };
+
+export function validarDiasInactividad(texto: string): ResultadoValidacionDias {
+  const limpio = texto.trim();
+  const error = `Ingresá un número entero de ${DIAS_INACTIVIDAD_MIN} a ${DIAS_INACTIVIDAD_MAX} días.`;
+  if (!/^\d+$/.test(limpio)) return { ok: false, error };
+
+  const valor = Number(limpio);
+  if (valor < DIAS_INACTIVIDAD_MIN || valor > DIAS_INACTIVIDAD_MAX) return { ok: false, error };
+  return { ok: true, valor };
+}
+
+// "Inactiva" exige estrictamente más de N días: exactamente N todavía no.
+export function estaInactiva(ultimaActividad: Date | string, ahora: Date, dias: number): boolean {
+  return ahora.getTime() - new Date(ultimaActividad).getTime() > dias * MS_POR_DIA;
+}
 
 export function estadoEsFinal(estado: EstadoPostulacion): boolean {
   return estado === 'oferta' || estado === 'rechazado';
@@ -41,11 +61,11 @@ export function calcularRecordatoriosPendientes({
       ...propios.map((r) => r.fecha_resuelto).filter((f): f is string => f !== null),
     ].map((f) => new Date(f).getTime());
 
-    const transcurrido = ahora.getTime() - Math.max(...marcasDeActividad);
-    if (transcurrido > dias * MS_POR_DIA) {
+    const ultimaActividad = Math.max(...marcasDeActividad);
+    if (estaInactiva(new Date(ultimaActividad), ahora, dias)) {
       pendientes.push({
         postulacion_id: postulacion.id,
-        dias_inactividad: Math.floor(transcurrido / MS_POR_DIA),
+        dias_inactividad: Math.floor((ahora.getTime() - ultimaActividad) / MS_POR_DIA),
       });
     }
   }
@@ -53,10 +73,47 @@ export function calcularRecordatoriosPendientes({
   return pendientes;
 }
 
+export async function obtenerDiasInactividad(userId: string): Promise<number> {
+  const { data, error } = await supabase
+    .from('perfil_usuario')
+    .select('dias_inactividad_recordatorio')
+    .eq('user_id', userId)
+    .maybeSingle();
+
+  if (error) throw error;
+  return data?.dias_inactividad_recordatorio ?? DIAS_INACTIVIDAD_DEFECTO;
+}
+
+export async function obtenerMisDiasInactividad(): Promise<number> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('No hay sesión activa.');
+  return obtenerDiasInactividad(user.id);
+}
+
+// Solo aplica hacia adelante: no toca los recordatorios ya generados (ver docs del umbral).
+export async function guardarDiasInactividad(dias: number): Promise<number> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('No hay sesión activa.');
+
+  const { data, error } = await supabase
+    .from('perfil_usuario')
+    .upsert({ user_id: user.id, dias_inactividad_recordatorio: dias }, { onConflict: 'user_id' })
+    .select('dias_inactividad_recordatorio')
+    .single();
+
+  if (error) throw error;
+  return data.dias_inactividad_recordatorio as number;
+}
+
 let generacionEnCurso: Promise<void> | null = null;
 
 async function generar(userId: string, reintentar = true): Promise<void> {
-  const [postulaciones, interacciones, recordatorios] = await Promise.all([
+  const [dias, postulaciones, interacciones, recordatorios] = await Promise.all([
+    obtenerDiasInactividad(userId),
     supabase.from('postulaciones').select('id, estado, created_at').eq('user_id', userId),
     supabase.from('interacciones').select('postulacion_id, fecha').eq('user_id', userId),
     supabase.from('recordatorios').select('postulacion_id, estado, fecha_resuelto').eq('user_id', userId),
@@ -71,7 +128,7 @@ async function generar(userId: string, reintentar = true): Promise<void> {
     interacciones: interacciones.data,
     recordatorios: recordatorios.data,
     ahora: new Date(),
-    dias: DIAS_INACTIVIDAD_RECORDATORIO,
+    dias,
   });
 
   if (pendientes.length === 0) return;
