@@ -1,8 +1,11 @@
-import { crearOferta } from '@/services/ofertas';
+import { claveDedupeOferta } from '@/lib/fuentes';
+import { crearOferta, listarClavesOfertasExistentes } from '@/services/ofertas';
 import type { Oferta, OfertaInput } from '@/types/oferta';
 
 const REMOTIVE_URL = 'https://remotive.com/api/remote-jobs?limit=100';
 const ARBEITNOW_URL = 'https://www.arbeitnow.com/api/job-board-api';
+
+export { claveDedupeOferta };
 
 export interface RemotiveJob {
   title: string;
@@ -69,16 +72,6 @@ export async function importarDeArbeitnow(): Promise<OfertaInput[]> {
   return data.data.filter((job) => job.remote).map(normalizarArbeitnow);
 }
 
-export function claveDedupeOferta(oferta: {
-  empresa: string;
-  rol: string;
-  fuente: string | null;
-}): string {
-  return [oferta.empresa, oferta.rol, oferta.fuente ?? '']
-    .map((parte) => parte.trim().toLowerCase())
-    .join('|');
-}
-
 export interface ResultadoImportacion {
   insertadas: Oferta[];
   omitidasPorDuplicado: number;
@@ -86,19 +79,12 @@ export interface ResultadoImportacion {
   fuentesFallidas: string[];
 }
 
-export async function importarOfertasRemotas(ofertasExistentes: Oferta[]): Promise<ResultadoImportacion> {
-  const fuentesFallidas: string[] = [];
-
-  const [remotive, arbeitnow] = await Promise.allSettled([importarDeRemotive(), importarDeArbeitnow()]);
-
-  const candidatos: OfertaInput[] = [];
-  if (remotive.status === 'fulfilled') candidatos.push(...remotive.value);
-  else fuentesFallidas.push('Remotive');
-
-  if (arbeitnow.status === 'fulfilled') candidatos.push(...arbeitnow.value);
-  else fuentesFallidas.push('Arbeitnow');
-
-  const vistos = new Set(ofertasExistentes.map(claveDedupeOferta));
+// Separa las candidatas que todavía no existen. `existentes` son claves ya normalizadas con claveDedupeOferta.
+export function separarNuevas(
+  candidatos: OfertaInput[],
+  existentes: Set<string>
+): { nuevas: OfertaInput[]; omitidasPorDuplicado: number } {
+  const vistos = new Set(existentes);
   const nuevas: OfertaInput[] = [];
   let omitidasPorDuplicado = 0;
 
@@ -111,6 +97,26 @@ export async function importarOfertasRemotas(ofertasExistentes: Oferta[]): Promi
     vistos.add(clave);
     nuevas.push(candidato);
   }
+
+  return { nuevas, omitidasPorDuplicado };
+}
+
+export async function importarOfertasRemotas(): Promise<ResultadoImportacion> {
+  const fuentesFallidas: string[] = [];
+
+  const [remotive, arbeitnow] = await Promise.allSettled([importarDeRemotive(), importarDeArbeitnow()]);
+
+  const candidatos: OfertaInput[] = [];
+  if (remotive.status === 'fulfilled') candidatos.push(...remotive.value);
+  else fuentesFallidas.push('Remotive');
+
+  if (arbeitnow.status === 'fulfilled') candidatos.push(...arbeitnow.value);
+  else fuentesFallidas.push('Arbeitnow');
+
+  // No depende de tener cargadas las ofertas: se consultan solo las claves de las fuentes candidatas.
+  const fuentes = [...new Set(candidatos.map((c) => c.fuente).filter((f): f is string => !!f))];
+  const existentes = await listarClavesOfertasExistentes(fuentes);
+  const { nuevas, omitidasPorDuplicado } = separarNuevas(candidatos, existentes);
 
   const insertadas: Oferta[] = [];
   let erroresInsercion = 0;

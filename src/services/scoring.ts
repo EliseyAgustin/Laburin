@@ -1,3 +1,4 @@
+import { leerEnLotes } from '@/lib/lotes';
 import { supabase } from '@/lib/supabase';
 import type { CriterioScoring } from '@/types/criterioScoring';
 import type { OfertaInput } from '@/types/oferta';
@@ -67,23 +68,37 @@ export async function obtenerCriteriosActivos(userId: string): Promise<CriterioS
   return data as CriterioScoring[];
 }
 
+export function scoresDesactualizados(
+  ofertas: (OfertaParaScoring & { id: string; puntaje_scoring: number | null })[],
+  criterios: CriterioScoring[]
+): { id: string; puntaje_scoring: number }[] {
+  const cambios: { id: string; puntaje_scoring: number }[] = [];
+  for (const oferta of ofertas) {
+    const puntaje_scoring = calcularScoring(oferta, criterios);
+    if (oferta.puntaje_scoring !== puntaje_scoring) cambios.push({ id: oferta.id, puntaje_scoring });
+  }
+  return cambios;
+}
+
+const ACTUALIZACIONES_CONCURRENTES = 10;
+
+// Lee todas las ofertas por lotes (el techo de 1000 filas dejaría scores viejos más allá de esa fila)
+// y escribe solo las que cambiaron, en grupos concurrentes en vez de una request serial por fila.
 export async function recalcularTodosLosScores(userId: string): Promise<void> {
   const criterios = await obtenerCriteriosActivos(userId);
 
-  const { data: ofertas, error } = await supabase
-    .from('ofertas')
-    .select('*')
-    .eq('user_id', userId);
+  const ofertas = await leerEnLotes((desde, hasta) =>
+    supabase.from('ofertas').select('*').eq('user_id', userId).order('id').range(desde, hasta)
+  );
 
-  if (error) throw error;
+  const cambios = scoresDesactualizados(ofertas as Parameters<typeof scoresDesactualizados>[0], criterios);
 
-  for (const oferta of ofertas ?? []) {
-    const puntaje_scoring = calcularScoring(oferta as OfertaParaScoring, criterios);
-    const { error: updateError } = await supabase
-      .from('ofertas')
-      .update({ puntaje_scoring })
-      .eq('id', oferta.id);
-
-    if (updateError) throw updateError;
+  for (let i = 0; i < cambios.length; i += ACTUALIZACIONES_CONCURRENTES) {
+    const grupo = cambios.slice(i, i + ACTUALIZACIONES_CONCURRENTES);
+    const resultados = await Promise.all(
+      grupo.map(({ id, puntaje_scoring }) => supabase.from('ofertas').update({ puntaje_scoring }).eq('id', id))
+    );
+    const fallo = resultados.find((r) => r.error);
+    if (fallo?.error) throw fallo.error;
   }
 }

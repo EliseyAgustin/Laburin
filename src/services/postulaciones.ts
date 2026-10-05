@@ -1,3 +1,4 @@
+import { leerEnLotes } from '@/lib/lotes';
 import { supabase } from '@/lib/supabase';
 import { fechaLocalISO } from '@/lib/utils';
 import type { HistorialEstado } from '@/types/historialEstado';
@@ -16,24 +17,41 @@ export const ESTADO_POSTULACION_LABEL: Record<EstadoPostulacion, string> = Objec
   ESTADOS_POSTULACION.map(({ estado, label }) => [estado, label])
 ) as Record<EstadoPostulacion, string>;
 
-export async function listarPostulaciones(): Promise<Postulacion[]> {
-  const { data, error } = await supabase
-    .from('postulaciones')
-    .select('*')
-    .order('created_at', { ascending: false });
+export function listarPostulaciones(): Promise<Postulacion[]> {
+  return leerEnLotes<Postulacion>((desde, hasta) =>
+    supabase
+      .from('postulaciones')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .order('id')
+      .range(desde, hasta)
+  );
+}
 
-  if (error) throw error;
-  return data as Postulacion[];
+// Solo las postulaciones de estas ofertas (la página visible), en tandas para no armar una URL gigante.
+export async function listarPostulacionesDeOfertas(ofertaIds: string[]): Promise<Postulacion[]> {
+  const resultado: Postulacion[] = [];
+  for (let i = 0; i < ofertaIds.length; i += 100) {
+    const { data, error } = await supabase
+      .from('postulaciones')
+      .select('*')
+      .in('oferta_id', ofertaIds.slice(i, i + 100));
+    if (error) throw error;
+    resultado.push(...(data as Postulacion[]));
+  }
+  return resultado;
 }
 
 export async function listarPostulacionesConOferta(): Promise<PostulacionConOferta[]> {
-  const { data, error } = await supabase
-    .from('postulaciones')
-    .select('*, oferta:ofertas(*)')
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
-  return data as unknown as PostulacionConOferta[];
+  const filas = await leerEnLotes((desde, hasta) =>
+    supabase
+      .from('postulaciones')
+      .select('*, oferta:ofertas(*)')
+      .order('created_at', { ascending: false })
+      .order('id')
+      .range(desde, hasta)
+  );
+  return filas as unknown as PostulacionConOferta[];
 }
 
 export async function obtenerPostulacionConOferta(id: string): Promise<PostulacionConOferta> {
@@ -90,9 +108,8 @@ export async function eliminarPostulacion(id: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function listarHistorialEstados(): Promise<HistorialEstado[]> {
-  const { data, error } = await supabase.from('postulacion_historial_estados').select('*');
-
-  if (error) throw error;
-  return data as HistorialEstado[];
+export function listarHistorialEstados(): Promise<HistorialEstado[]> {
+  return leerEnLotes<HistorialEstado>((desde, hasta) =>
+    supabase.from('postulacion_historial_estados').select('*').order('id').range(desde, hasta)
+  );
 }

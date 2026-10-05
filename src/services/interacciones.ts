@@ -1,3 +1,4 @@
+import { leerEnLotes } from '@/lib/lotes';
 import { supabase } from '@/lib/supabase';
 import type { Interaccion, InteraccionInput } from '@/types/interaccion';
 
@@ -24,9 +25,8 @@ export async function eliminarInteraccion(id: string): Promise<void> {
   if (error) throw error;
 }
 
-export async function listarTodasLasInteracciones(): Promise<Interaccion[]> {
-  const { data, error } = await supabase.from('interacciones').select('*');
-
-  if (error) throw error;
-  return data as Interaccion[];
+export function listarTodasLasInteracciones(): Promise<Interaccion[]> {
+  return leerEnLotes<Interaccion>((desde, hasta) =>
+    supabase.from('interacciones').select('*').order('id').range(desde, hasta)
+  );
 }

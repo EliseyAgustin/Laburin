@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { claveDedupeOferta, normalizarArbeitnow, normalizarRemotive } from '@/services/fuentesExternas';
+import { claveDedupeOferta, normalizarArbeitnow, normalizarRemotive, separarNuevas } from '@/services/fuentesExternas';
 import type { Oferta } from '@/types/oferta';
 
 describe('normalizarRemotive', () => {
@@ -123,5 +123,35 @@ describe('claveDedupeOferta', () => {
     const a = claveDedupeOferta(ofertaFixture({ rol: 'QA Analyst' }));
     const b = claveDedupeOferta(ofertaFixture({ rol: 'QA Engineer' }));
     expect(a).not.toBe(b);
+  });
+});
+
+describe('separarNuevas', () => {
+  const cand = (empresa: string, rol: string, fuente = 'Remotive') => ({
+    empresa,
+    rol,
+    fuente,
+    ubicacion: null,
+    modalidad: 'remoto' as const,
+    stack_tecnologico: [],
+    fecha_publicacion: null,
+  });
+
+  it('omite las que ya existen, sin importar mayúsculas ni espacios', () => {
+    const existentes = new Set([claveDedupeOferta({ empresa: 'acme', rol: 'dev', fuente: 'remotive' })]);
+    const r = separarNuevas([cand(' ACME ', 'Dev'), cand('Otra', 'Dev')], existentes);
+    expect(r.nuevas.map((o) => o.empresa)).toEqual(['Otra']);
+    expect(r.omitidasPorDuplicado).toBe(1);
+  });
+
+  it('deduplica repetidas dentro del propio lote de candidatas', () => {
+    const r = separarNuevas([cand('Acme', 'Dev'), cand('Acme', 'Dev')], new Set());
+    expect(r.nuevas).toHaveLength(1);
+    expect(r.omitidasPorDuplicado).toBe(1);
+  });
+
+  it('la misma empresa y rol en otra fuente no es duplicado', () => {
+    const existentes = new Set([claveDedupeOferta({ empresa: 'Acme', rol: 'Dev', fuente: 'Arbeitnow' })]);
+    expect(separarNuevas([cand('Acme', 'Dev', 'Remotive')], existentes).nuevas).toHaveLength(1);
   });
 });

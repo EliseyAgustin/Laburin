@@ -7,3 +7,13 @@ export function coincideFuente(fuenteOferta: string | null, filtro: string): boo
   if (filtro === FUENTE_MANUAL) return !fuenteOferta || fuenteOferta === FUENTE_MANUAL;
   return fuenteOferta === filtro;
 }
+
+export function claveDedupeOferta(oferta: {
+  empresa: string;
+  rol: string;
+  fuente: string | null;
+}): string {
+  return [oferta.empresa, oferta.rol, oferta.fuente ?? '']
+    .map((parte) => parte.trim().toLowerCase())
+    .join('|');
+}

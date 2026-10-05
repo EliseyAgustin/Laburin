@@ -1,16 +1,98 @@
 import { supabase } from '@/lib/supabase';
 import { mensajeDeError } from '@/lib/errores';
+import { claveDedupeOferta, FUENTE_MANUAL } from '@/lib/fuentes';
+import { escaparLike, leerEnLotes, rangoDePagina } from '@/lib/lotes';
 import { calcularScoring, obtenerCriteriosActivos } from '@/services/scoring';
 import type { Oferta, OfertaInput } from '@/types/oferta';
 
-export async function listarOfertas(): Promise<Oferta[]> {
-  const { data, error } = await supabase
-    .from('ofertas')
-    .select('*')
-    .order('created_at', { ascending: false });
+export interface FiltrosOfertas {
+  fuente: string;
+  ubicacion: string;
+  score: number;
+}
+
+export const FILTROS_OFERTAS_VACIOS: FiltrosOfertas = { fuente: '', ubicacion: '', score: 0 };
+
+// Misma semántica que los filtros que antes se aplicaban en memoria (coincideFuente, includes, score mínimo),
+// pero resuelta en la base para que cuente con todas las filas y no solo con las cargadas.
+function aplicarFiltros<Q>(query: Q, { fuente, ubicacion, score }: FiltrosOfertas): Q {
+  // El builder de supabase-js cambia de tipo en cada llamada; acá solo encadenamos filtros.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let q: any = query;
+
+  if (fuente === FUENTE_MANUAL) q = q.or(`fuente.is.null,fuente.eq."${FUENTE_MANUAL}"`);
+  else if (fuente) q = q.eq('fuente', fuente);
+
+  if (ubicacion) q = q.ilike('ubicacion', `%${escaparLike(ubicacion)}%`);
+  if (score > 0) q = q.gte('puntaje_scoring', score);
+
+  return q as Q;
+}
+
+export async function listarOfertasPagina(
+  filtros: FiltrosOfertas,
+  pagina: number,
+  tamano: number
+): Promise<{ ofertas: Oferta[]; total: number }> {
+  const { desde, hasta } = rangoDePagina(pagina, tamano);
+
+  const { data, error, count } = await aplicarFiltros(
+    supabase.from('ofertas').select('*', { count: 'exact' }),
+    filtros
+  )
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .range(desde, hasta);
 
   if (error) throw error;
-  return data as Oferta[];
+  return { ofertas: data as Oferta[], total: count ?? 0 };
+}
+
+// Ids de todas las ofertas que coinciden con los filtros (para "seleccionar las N que coinciden").
+export function listarIdsOfertas(filtros: FiltrosOfertas): Promise<string[]> {
+  return leerEnLotes<{ id: string }>((desde, hasta) =>
+    aplicarFiltros(supabase.from('ofertas').select('id'), filtros).order('id').range(desde, hasta)
+  ).then((filas) => filas.map((f) => f.id));
+}
+
+// Solo las columnas que usa Analytics, leídas por lotes.
+export function listarOfertasParaMetricas(): Promise<Pick<Oferta, 'created_at' | 'fuente' | 'puntaje_scoring'>[]> {
+  return leerEnLotes((desde, hasta) =>
+    supabase.from('ofertas').select('created_at, fuente, puntaje_scoring').order('id').range(desde, hasta)
+  );
+}
+
+// Claves de dedupe de las ofertas ya guardadas en las fuentes indicadas (comparación sin distinguir mayúsculas).
+export async function listarClavesOfertasExistentes(fuentes: string[]): Promise<Set<string>> {
+  const claves = new Set<string>();
+
+  for (const fuente of fuentes) {
+    const filas = await leerEnLotes((desde, hasta) =>
+      supabase
+        .from('ofertas')
+        .select('empresa, rol, fuente')
+        .ilike('fuente', escaparLike(fuente.trim()))
+        .order('id')
+        .range(desde, hasta)
+    );
+    for (const fila of filas) claves.add(claveDedupeOferta(fila));
+  }
+
+  return claves;
+}
+
+// Cuántas de estas ofertas ya tienen una postulación (en tandas, para no armar una URL gigante).
+export async function contarPostulacionesDeOfertas(ofertaIds: string[]): Promise<number> {
+  let total = 0;
+  for (let i = 0; i < ofertaIds.length; i += 100) {
+    const { count, error } = await supabase
+      .from('postulaciones')
+      .select('id', { count: 'exact', head: true })
+      .in('oferta_id', ofertaIds.slice(i, i + 100));
+    if (error) throw error;
+    total += count ?? 0;
+  }
+  return total;
 }
 
 export async function crearOferta(input: OfertaInput): Promise<Oferta> {

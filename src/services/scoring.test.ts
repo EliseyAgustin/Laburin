@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calcularScoring } from '@/services/scoring';
+import { calcularScoring, scoresDesactualizados } from '@/services/scoring';
 import type { CriterioScoring } from '@/types/criterioScoring';
 import type { OfertaInput } from '@/types/oferta';
 
@@ -111,5 +111,35 @@ describe('calcularScoring', () => {
   it('el matching de "contiene" y "exacto" ignora mayúsculas/minúsculas', () => {
     const criterios = [criterio({ tipo_coincidencia: 'contiene', campo_objetivo: 'stack_tecnologico', valor_comparacion: 'react', peso: 15 })];
     expect(calcularScoring(ofertaBase(), criterios)).toBe(15);
+  });
+});
+
+describe('scoresDesactualizados', () => {
+  const cs = [criterio({ valor_comparacion: 'React', peso: 15 })];
+  const fila = (id: string, puntaje_scoring: number | null, stack = ['React']) => ({
+    ...ofertaBase({ stack_tecnologico: stack }),
+    id,
+    puntaje_scoring,
+  });
+
+  it('devuelve solo las ofertas cuyo puntaje cambió', () => {
+    const r = scoresDesactualizados([fila('a', 15), fila('b', 0), fila('c', 15, ['Go'])], cs);
+    expect(r).toEqual([
+      { id: 'b', puntaje_scoring: 15 },
+      { id: 'c', puntaje_scoring: 0 },
+    ]);
+  });
+
+  it('una oferta sin puntaje previo (null) se considera desactualizada', () => {
+    expect(scoresDesactualizados([fila('a', null)], cs)).toEqual([{ id: 'a', puntaje_scoring: 15 }]);
+  });
+
+  it('con todo al día no devuelve nada', () => {
+    expect(scoresDesactualizados([fila('a', 15)], cs)).toEqual([]);
+  });
+
+  it('funciona con más de 1000 ofertas', () => {
+    const muchas = Array.from({ length: 2500 }, (_, i) => fila(`o${i}`, 0));
+    expect(scoresDesactualizados(muchas, cs)).toHaveLength(2500);
   });
 });

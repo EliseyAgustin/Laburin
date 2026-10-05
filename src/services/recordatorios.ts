@@ -1,3 +1,4 @@
+import { leerEnLotes } from '@/lib/lotes';
 import { supabase } from '@/lib/supabase';
 import type { Interaccion } from '@/types/interaccion';
 import type { EstadoPostulacion, Postulacion } from '@/types/postulacion';
@@ -112,21 +113,30 @@ export async function guardarDiasInactividad(dias: number): Promise<number> {
 let generacionEnCurso: Promise<void> | null = null;
 
 async function generar(userId: string, reintentar = true): Promise<void> {
+  // Por lotes: si el techo de 1000 filas truncara las interacciones, una postulación con actividad
+  // pasaría por inactiva y generaría un recordatorio falso.
   const [dias, postulaciones, interacciones, recordatorios] = await Promise.all([
     obtenerDiasInactividad(userId),
-    supabase.from('postulaciones').select('id, estado, created_at').eq('user_id', userId),
-    supabase.from('interacciones').select('postulacion_id, fecha').eq('user_id', userId),
-    supabase.from('recordatorios').select('postulacion_id, estado, fecha_resuelto').eq('user_id', userId),
+    leerEnLotes<Pick<Postulacion, 'id' | 'estado' | 'created_at'>>((desde, hasta) =>
+      supabase.from('postulaciones').select('id, estado, created_at').eq('user_id', userId).order('id').range(desde, hasta)
+    ),
+    leerEnLotes<Pick<Interaccion, 'postulacion_id' | 'fecha'>>((desde, hasta) =>
+      supabase.from('interacciones').select('postulacion_id, fecha').eq('user_id', userId).order('id').range(desde, hasta)
+    ),
+    leerEnLotes<Pick<Recordatorio, 'postulacion_id' | 'estado' | 'fecha_resuelto'>>((desde, hasta) =>
+      supabase
+        .from('recordatorios')
+        .select('postulacion_id, estado, fecha_resuelto')
+        .eq('user_id', userId)
+        .order('id')
+        .range(desde, hasta)
+    ),
   ]);
 
-  if (postulaciones.error) throw postulaciones.error;
-  if (interacciones.error) throw interacciones.error;
-  if (recordatorios.error) throw recordatorios.error;
-
   const pendientes = calcularRecordatoriosPendientes({
-    postulaciones: postulaciones.data,
-    interacciones: interacciones.data,
-    recordatorios: recordatorios.data,
+    postulaciones,
+    interacciones,
+    recordatorios,
     ahora: new Date(),
     dias,
   });
@@ -151,15 +161,16 @@ export function generarRecordatorios(userId: string): Promise<void> {
   return generacionEnCurso;
 }
 
-export async function listarRecordatoriosActivos(): Promise<Recordatorio[]> {
-  const { data, error } = await supabase
-    .from('recordatorios')
-    .select('*')
-    .eq('estado', 'activo')
-    .order('fecha_generado', { ascending: false });
-
-  if (error) throw error;
-  return data as Recordatorio[];
+export function listarRecordatoriosActivos(): Promise<Recordatorio[]> {
+  return leerEnLotes<Recordatorio>((desde, hasta) =>
+    supabase
+      .from('recordatorios')
+      .select('*')
+      .eq('estado', 'activo')
+      .order('fecha_generado', { ascending: false })
+      .order('id')
+      .range(desde, hasta)
+  );
 }
 
 export async function obtenerRecordatorioActivo(postulacionId: string): Promise<Recordatorio | null> {
@@ -193,9 +204,8 @@ export async function resolverRecordatoriosDePostulacion(postulacionId: string):
   if (error) throw error;
 }
 
-export async function listarTodosLosRecordatorios(): Promise<Recordatorio[]> {
-  const { data, error } = await supabase.from('recordatorios').select('*');
-
-  if (error) throw error;
-  return data as Recordatorio[];
+export function listarTodosLosRecordatorios(): Promise<Recordatorio[]> {
+  return leerEnLotes<Recordatorio>((desde, hasta) =>
+    supabase.from('recordatorios').select('*').order('id').range(desde, hasta)
+  );
 }

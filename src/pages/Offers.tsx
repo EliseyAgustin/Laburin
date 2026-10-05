@@ -1,14 +1,25 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { Download, Filter, MapPin, Clock, Building2, Pencil, Trash2, Plus, Inbox, Send } from 'lucide-react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Download, Filter, MapPin, Clock, Building2, Pencil, Trash2, Plus, Inbox, Send, ChevronLeft, ChevronRight } from 'lucide-react';
 import { mensajeDeError } from '@/lib/errores';
 import { ApplicationDetailPanel } from '@/components/ApplicationDetailPanel';
 import { ConfirmarEliminacionModal } from '@/components/ConfirmarEliminacionModal';
 import { OfertaFormModal } from '@/components/OfertaFormModal';
-import { coincideFuente, FUENTES_OFERTA } from '@/lib/fuentes';
-import { alternarId, alternarTodas, estadoSeleccionTodas, idsSeleccionadosVisibles } from '@/lib/seleccion';
+import { FUENTES_OFERTA } from '@/lib/fuentes';
+import { paginaDentroDeRango, totalPaginas } from '@/lib/lotes';
+import { alternarId, alternarTodas, estadoSeleccionTodas } from '@/lib/seleccion';
 import { scoreBandClasses, scoreBorderClasses } from '@/lib/utils';
-import { crearOferta, actualizarOferta, eliminarOferta, eliminarOfertas, listarOfertas } from '@/services/ofertas';
-import { crearPostulacion, ESTADO_POSTULACION_LABEL, listarPostulaciones } from '@/services/postulaciones';
+import {
+  actualizarOferta,
+  contarPostulacionesDeOfertas,
+  crearOferta,
+  eliminarOferta,
+  eliminarOfertas,
+  FILTROS_OFERTAS_VACIOS,
+  listarIdsOfertas,
+  listarOfertasPagina,
+  type FiltrosOfertas,
+} from '@/services/ofertas';
+import { crearPostulacion, ESTADO_POSTULACION_LABEL, listarPostulacionesDeOfertas } from '@/services/postulaciones';
 import { importarOfertasRemotas } from '@/services/fuentesExternas';
 import type { Oferta, OfertaInput } from '@/types/oferta';
 import type { EstadoPostulacion, Postulacion } from '@/types/postulacion';
@@ -19,8 +30,17 @@ const MODALIDAD_LABEL: Record<string, string> = {
   presencial: 'Presencial',
 };
 
+const TAMANO_PAGINA = 30;
+
 export function Offers() {
+  const raizRef = useRef<HTMLDivElement>(null);
+  const solicitudRef = useRef(0);
   const [ofertas, setOfertas] = useState<Oferta[]>([]);
+  const [total, setTotal] = useState(0);
+  const [pagina, setPagina] = useState(1);
+  const [conSeguimientoABorrar, setConSeguimientoABorrar] = useState(0);
+  const [preparandoBorrado, setPreparandoBorrado] = useState(false);
+  const [seleccionandoTodas, setSeleccionandoTodas] = useState(false);
   const [postulacionesPorOferta, setPostulacionesPorOferta] = useState<Record<string, Postulacion>>({});
   const [postulandoId, setPostulandoId] = useState<string | null>(null);
   const [fichaPostulacionId, setFichaPostulacionId] = useState<string | null>(null);
@@ -38,26 +58,50 @@ export function Offers() {
   const [fuenteDraft, setFuenteDraft] = useState('');
   const [ubicacionDraft, setUbicacionDraft] = useState('');
   const [scoreDraft, setScoreDraft] = useState(0);
-  const [filtros, setFiltros] = useState({ fuente: '', ubicacion: '', score: 0 });
+  const [filtros, setFiltros] = useState<FiltrosOfertas>(FILTROS_OFERTAS_VACIOS);
 
   useEffect(() => {
-    refetch();
-  }, []);
+    cargar();
+  }, [filtros, pagina]);
 
-  async function refetch() {
-    setLoading(true);
+  // La paginación y los filtros se resuelven en la base: la pantalla nunca tiene todas las ofertas en memoria.
+  // `silencioso` refresca tras una mutación sin reemplazar la grilla por el cartel de carga.
+  async function cargar(silencioso = false) {
+    const solicitud = ++solicitudRef.current;
+    if (!silencioso) setLoading(true);
     try {
-      const [ofertasData, postulacionesData] = await Promise.all([listarOfertas(), listarPostulaciones()]);
-      setOfertas(ofertasData);
-      setPostulacionesPorOferta(
-        Object.fromEntries(postulacionesData.map((p) => [p.oferta_id, p]))
-      );
+      const { ofertas: delaPagina, total: totalFiltrado } = await listarOfertasPagina(filtros, pagina, TAMANO_PAGINA);
+      if (solicitud !== solicitudRef.current) return;
+
+      const paginaAjustada = paginaDentroDeRango(pagina, totalFiltrado, TAMANO_PAGINA);
+      if (paginaAjustada !== pagina) {
+        setPagina(paginaAjustada);
+        return;
+      }
+
+      const postulaciones = await listarPostulacionesDeOfertas(delaPagina.map((o) => o.id));
+      if (solicitud !== solicitudRef.current) return;
+
+      setOfertas(delaPagina);
+      setTotal(totalFiltrado);
+      setPostulacionesPorOferta(Object.fromEntries(postulaciones.map((p) => [p.oferta_id, p])));
       setLoadError(null);
     } catch (err) {
+      if (solicitud !== solicitudRef.current) return;
       setLoadError(mensajeDeError(err, 'No se pudieron cargar las ofertas.'));
     } finally {
-      setLoading(false);
+      if (solicitud === solicitudRef.current) setLoading(false);
     }
+  }
+
+  function irAPagina(nueva: number) {
+    setPagina(nueva);
+    raizRef.current?.scrollTo({ top: 0 });
+  }
+
+  function recargarDesdeLaPrimera() {
+    if (pagina !== 1) setPagina(1);
+    else cargar(true);
   }
 
   async function handlePostularme(oferta: Oferta) {
@@ -77,8 +121,8 @@ export function Offers() {
     setImporting(true);
     setImportMessage(null);
     try {
-      const resultado = await importarOfertasRemotas(ofertas);
-      await refetch();
+      const resultado = await importarOfertasRemotas();
+      recargarDesdeLaPrimera();
 
       const partes = [`${resultado.insertadas.length} ofertas nuevas importadas`];
       if (resultado.omitidasPorDuplicado > 0) {
@@ -126,11 +170,11 @@ export function Offers() {
 
   async function handleSubmit(input: OfertaInput) {
     if (editingOferta) {
-      const updated = await actualizarOferta(editingOferta.id, input);
-      setOfertas((prev) => prev.map((o) => (o.id === updated.id ? updated : o)));
+      await actualizarOferta(editingOferta.id, input);
+      cargar(true);
     } else {
-      const created = await crearOferta(input);
-      setOfertas((prev) => [created, ...prev]);
+      await crearOferta(input);
+      recargarDesdeLaPrimera();
     }
     setFormOpen(false);
     setEditingOferta(null);
@@ -139,7 +183,7 @@ export function Offers() {
   async function handleDelete(oferta: Oferta) {
     if (!window.confirm(`¿Eliminar la oferta "${oferta.rol}" en ${oferta.empresa}?`)) return;
     await eliminarOferta(oferta.id);
-    setOfertas((prev) => prev.filter((o) => o.id !== oferta.id));
+    cargar(true);
     setSeleccionadas((prev) => {
       const siguiente = new Set(prev);
       siguiente.delete(oferta.id);
@@ -150,21 +194,46 @@ export function Offers() {
   function handleAplicarFiltros(e: FormEvent) {
     e.preventDefault();
     setSeleccionadas(new Set());
+    setPagina(1);
     setFiltros({ fuente: fuenteDraft, ubicacion: ubicacionDraft.trim(), score: scoreDraft });
   }
 
-  const ofertasFiltradas = ofertas.filter((o) => {
-    if (!coincideFuente(o.fuente, filtros.fuente)) return false;
-    if (filtros.ubicacion && !(o.ubicacion ?? '').toLowerCase().includes(filtros.ubicacion.toLowerCase())) {
-      return false;
-    }
-    if ((o.puntaje_scoring ?? 0) < filtros.score) return false;
-    return true;
-  });
+  const hayFiltros =
+    filtros.fuente !== FILTROS_OFERTAS_VACIOS.fuente ||
+    filtros.ubicacion !== FILTROS_OFERTAS_VACIOS.ubicacion ||
+    filtros.score !== FILTROS_OFERTAS_VACIOS.score;
+  const paginas = totalPaginas(total, TAMANO_PAGINA);
+  const hayMasQueLaPagina = total > ofertas.length;
 
-  const idsSeleccionados = idsSeleccionadosVisibles(ofertasFiltradas, seleccionadas);
-  const estadoTodas = estadoSeleccionTodas(ofertasFiltradas, seleccionadas);
-  const seleccionadasConSeguimiento = idsSeleccionados.filter((id) => postulacionesPorOferta[id]).length;
+  // La selección puede abarcar más que la página visible ("Seleccionar las N que coinciden"),
+  // así que el borrado actúa siempre sobre exactamente lo que dice el contador.
+  const idsSeleccionados = [...seleccionadas];
+  const estadoTodas = estadoSeleccionTodas(ofertas, seleccionadas);
+
+  async function handleSeleccionarTodasLasCoincidencias() {
+    setSeleccionandoTodas(true);
+    try {
+      setSeleccionadas(new Set(await listarIdsOfertas(filtros)));
+      setLoadError(null);
+    } catch (err) {
+      setLoadError(mensajeDeError(err, 'No se pudieron seleccionar las ofertas.'));
+    } finally {
+      setSeleccionandoTodas(false);
+    }
+  }
+
+  async function handlePedirConfirmacionBorrado() {
+    setResultadoBorrado(null);
+    setPreparandoBorrado(true);
+    try {
+      setConSeguimientoABorrar(await contarPostulacionesDeOfertas(idsSeleccionados));
+      setConfirmandoBorrado(true);
+    } catch (err) {
+      setLoadError(mensajeDeError(err, 'No se pudo preparar el borrado.'));
+    } finally {
+      setPreparandoBorrado(false);
+    }
+  }
 
   async function handleEliminarSeleccionadas() {
     setEliminando(true);
@@ -172,7 +241,7 @@ export function Offers() {
       const { eliminadas, fallidas, motivo } = await eliminarOfertas(idsSeleccionados);
       const borradas = new Set(eliminadas);
 
-      setOfertas((prev) => prev.filter((o) => !borradas.has(o.id)));
+      cargar(true);
       setPostulacionesPorOferta((prev) =>
         Object.fromEntries(Object.entries(prev).filter(([ofertaId]) => !borradas.has(ofertaId)))
       );
@@ -197,7 +266,7 @@ export function Offers() {
   }
 
   return (
-    <div className="flex-1 overflow-y-auto p-margin h-full">
+    <div ref={raizRef} className="flex-1 overflow-y-auto p-margin h-full">
       <div className="max-w-7xl mx-auto">
 
         {/* Filters Row */}
@@ -312,12 +381,12 @@ export function Offers() {
 
         {loading ? (
           <div className="text-center text-on-surface-variant text-sm py-16">Cargando ofertas…</div>
-        ) : ofertas.length === 0 ? (
+        ) : total === 0 && !hayFiltros ? (
           <div className="flex flex-col items-center justify-center text-outline-variant py-24 gap-2">
             <Inbox className="w-12 h-12" />
             <p className="text-sm font-medium text-on-surface-variant">Todavía no cargaste ninguna oferta.</p>
           </div>
-        ) : ofertasFiltradas.length === 0 ? (
+        ) : total === 0 ? (
           <div className="flex flex-col items-center justify-center text-outline-variant py-24 gap-2">
             <Inbox className="w-12 h-12" />
             <p className="text-sm font-medium text-on-surface-variant">Ninguna oferta coincide con los filtros aplicados.</p>
@@ -332,11 +401,24 @@ export function Offers() {
                   if (el) el.indeterminate = estadoTodas === 'algunas';
                 }}
                 checked={estadoTodas === 'todas'}
-                onChange={() => setSeleccionadas(alternarTodas(ofertasFiltradas, seleccionadas))}
+                onChange={() => setSeleccionadas(alternarTodas(ofertas, seleccionadas))}
                 className="w-4 h-4 accent-primary cursor-pointer"
               />
-              Seleccionar todas ({ofertasFiltradas.length})
+              {hayMasQueLaPagina ? `Seleccionar esta página (${ofertas.length})` : `Seleccionar todas (${ofertas.length})`}
             </label>
+
+            {hayMasQueLaPagina && estadoTodas === 'todas' && seleccionadas.size < total && (
+              <button
+                type="button"
+                onClick={handleSeleccionarTodasLasCoincidencias}
+                disabled={seleccionandoTodas}
+                className="min-h-11 flex items-center text-sm font-medium text-primary hover:underline disabled:opacity-50 cursor-pointer text-left"
+              >
+                {seleccionandoTodas
+                  ? 'Seleccionando…'
+                  : `Seleccionar las ${total} ofertas que coinciden${hayFiltros ? ' con los filtros' : ''}`}
+              </button>
+            )}
 
             {idsSeleccionados.length > 0 && (
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
@@ -353,11 +435,9 @@ export function Offers() {
                   </button>
                   <button
                     type="button"
-                    onClick={() => {
-                      setResultadoBorrado(null);
-                      setConfirmandoBorrado(true);
-                    }}
-                    className="min-h-11 bg-error text-on-error text-sm font-medium px-4 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    onClick={handlePedirConfirmacionBorrado}
+                    disabled={preparandoBorrado}
+                    className="min-h-11 bg-error text-on-error text-sm font-medium px-4 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     <Trash2 className="w-4 h-4" />
                     Eliminar seleccionadas ({idsSeleccionados.length})
@@ -368,7 +448,7 @@ export function Offers() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {ofertasFiltradas.map((oferta) => (
+            {ofertas.map((oferta) => (
               <div
                 key={oferta.id}
                 className={`bg-surface-container-lowest border border-outline-variant rounded-xl p-5 hover:shadow-md hover:border-primary transition-all group flex flex-col h-full border-t-4 ${scoreBorderClasses(oferta.puntaje_scoring)} ${seleccionadas.has(oferta.id) ? 'ring-2 ring-primary' : ''}`}
@@ -462,6 +542,38 @@ export function Offers() {
               </div>
             ))}
           </div>
+
+          <nav
+            aria-label="Paginación de ofertas"
+            className="flex flex-col sm:flex-row items-center justify-between gap-3 mt-8 px-4 py-3 bg-surface rounded-xl border border-outline-variant shadow-sm"
+          >
+            <p className="text-sm text-on-surface-variant">
+              {total === 1 ? '1 oferta' : `${total} ofertas`}
+              {paginas > 1 && ` · Página ${pagina} de ${paginas}`}
+            </p>
+            {paginas > 1 && (
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => irAPagina(pagina - 1)}
+                  disabled={pagina <= 1 || loading}
+                  className="bg-surface-container-high text-on-surface text-xs font-medium px-4 py-2 min-h-11 sm:min-h-0 rounded-lg border border-outline-variant flex items-center gap-2 hover:bg-surface-variant transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4.5 h-4.5" />
+                  Anterior
+                </button>
+                <button
+                  type="button"
+                  onClick={() => irAPagina(pagina + 1)}
+                  disabled={pagina >= paginas || loading}
+                  className="bg-surface-container-high text-on-surface text-xs font-medium px-4 py-2 min-h-11 sm:min-h-0 rounded-lg border border-outline-variant flex items-center gap-2 hover:bg-surface-variant transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Siguiente
+                  <ChevronRight className="w-4.5 h-4.5" />
+                </button>
+              </div>
+            )}
+          </nav>
           </>
         )}
       </div>
@@ -469,7 +581,7 @@ export function Offers() {
       {confirmandoBorrado && (
         <ConfirmarEliminacionModal
           cantidad={idsSeleccionados.length}
-          conSeguimiento={seleccionadasConSeguimiento}
+          conSeguimiento={conSeguimientoABorrar}
           eliminando={eliminando}
           onConfirmar={handleEliminarSeleccionadas}
           onCancelar={() => setConfirmandoBorrado(false)}

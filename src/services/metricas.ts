@@ -2,7 +2,7 @@ import { conContexto, mensajeDeError } from '@/lib/errores';
 import { coincideFuente, FUENTES_OFERTA } from '@/lib/fuentes';
 import { listarCriterios } from '@/services/criteriosScoring';
 import { listarTodasLasInteracciones } from '@/services/interacciones';
-import { listarOfertas } from '@/services/ofertas';
+import { listarOfertasParaMetricas } from '@/services/ofertas';
 import { listarHistorialEstados, listarPostulaciones } from '@/services/postulaciones';
 import { estadoEsFinal, listarTodosLosRecordatorios } from '@/services/recordatorios';
 import type { CriterioScoring } from '@/types/criterioScoring';
@@ -237,7 +237,7 @@ export async function cargarDatosMetricas(): Promise<{ datos: DatosMetricas; adv
   });
 
   const [ofertas, postulaciones, interacciones, recordatorios, criterios, historialEstados] = await Promise.all([
-    conContexto('ofertas', listarOfertas()),
+    conContexto('ofertas', listarOfertasParaMetricas()),
     conContexto('postulaciones', listarPostulaciones()),
     conContexto('interacciones', listarTodasLasInteracciones()),
     conContexto('recordatorios', listarTodosLosRecordatorios()),
