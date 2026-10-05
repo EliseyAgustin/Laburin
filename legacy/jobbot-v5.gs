@@ -27,7 +27,7 @@
 // 1. CONFIG
 // ============================================
 const CONFIG = {
-  EMAIL: 'tu-email@ejemplo.com',
+  EMAIL: 'tu-email@ejemplo.com', // destinatario del resumen diario (reemplazado en el repo; poné tu email)
   TIMEZONE: 'America/Argentina/Buenos_Aires',
   MAX_JOBS: 60,
   MIN_JOBS: 10,

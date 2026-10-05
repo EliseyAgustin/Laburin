@@ -40,7 +40,7 @@ El esquema está en [`supabase/migrations/`](supabase/migrations/): tablas, pol�
 | Comando | Qué corre |
 |---|---|
 | `npm run test` | **Vitest:** 160 tests unitarios (15 archivos) de la lógica pura: scoring, recordatorios, métricas, paginación y lotes, importación, tags y utilidades. No toca la base. |
-| `npm run test:e2e` | **Playwright** (Chromium) en escritorio (1280x800) y mobile (375x812): 34 tests definidos, 16 por proyecto más una sesión de preparación por proyecto. En escritorio uno se saltea a propósito (el del teclado virtual, solo mobile). |
+| `npm run test:e2e` | **Playwright** (Chromium) en desktop (1280x800) y mobile (375x812): 34 tests definidos: 32 de punta a punta (16 en desktop y 16 en mobile) más 2 de preparación de sesión. En desktop uno se saltea a propósito (el del teclado virtual, solo mobile). |
 
 Para los E2E: `npx playwright install chromium` y copiar `.env.e2e.example` a `.env.e2e`. Corren contra la base configurada en `.env`, **crean cuentas de prueba** por el flujo de registro de la app y **borran sus datos al terminar** (los usuarios de Auth quedan). Conviene usar un proyecto de desarrollo, no uno con datos reales. Más detalle y zonas ciegas en [`e2e/README.md`](e2e/README.md).
 
