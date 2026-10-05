@@ -2,6 +2,7 @@ import { useState, type FormEvent, type KeyboardEvent } from 'react';
 import { X } from 'lucide-react';
 import { mensajeDeError } from '@/lib/errores';
 import { FUENTE_MANUAL } from '@/lib/fuentes';
+import { agregarTag } from '@/lib/tags';
 import type { Modalidad, Oferta, OfertaInput } from '@/types/oferta';
 
 interface OfertaFormModalProps {
@@ -30,10 +31,7 @@ export function OfertaFormModal({ oferta, onClose, onSubmit }: OfertaFormModalPr
   const [saving, setSaving] = useState(false);
 
   function addStackItem() {
-    const value = stackDraft.trim();
-    if (value && !stack.includes(value)) {
-      setStack([...stack, value]);
-    }
+    setStack(agregarTag(stack, stackDraft));
     setStackDraft('');
   }
 

@@ -1,5 +1,6 @@
 import { useState, type KeyboardEvent } from 'react';
 import { X } from 'lucide-react';
+import { agregarTag } from '@/lib/tags';
 import { cn, scrollFieldIntoView } from '@/lib/utils';
 
 const STACK_SUGERIDO = [
@@ -30,8 +31,7 @@ export function StackStep({ value, onChange }: StackStepProps) {
   }
 
   function addCustom() {
-    const v = draft.trim();
-    if (v && !value.includes(v)) onChange([...value, v]);
+    onChange(agregarTag(value, draft));
     setDraft('');
   }
 

@@ -26,6 +26,12 @@ test('ciclo de vida de una oferta: crear, score, postular, mover por las 6 colum
   await formulario.getByLabel('Modalidad').selectOption('remoto');
   await formulario.getByPlaceholder(/React, SQL/).fill('React');
   await formulario.getByPlaceholder(/React, SQL/).press('Enter');
+  // "react " (minúscula, con espacio) no agrega un segundo tag igual al primero.
+  // (el placeholder desaparece con el primer tag: el campo de stack es el último textbox del formulario)
+  const campoStack = formulario.getByRole('textbox').last();
+  await campoStack.fill(' react ');
+  await campoStack.press('Enter');
+  await expect(formulario.getByRole('button', { name: /^Quitar/ })).toHaveCount(1);
   await formulario.getByRole('button', { name: 'Crear oferta' }).click();
   await expect(formulario).toHaveCount(0);
 

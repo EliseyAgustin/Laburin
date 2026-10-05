@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Timer, Terminal, Briefcase, MapPin, Plus, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
 import { mensajeDeError } from '@/lib/errores';
+import { normalizarTag } from '@/lib/tags';
 import { cn } from '@/lib/utils';
 import {
   actualizarCriterio,
@@ -202,9 +203,13 @@ export function Settings() {
   async function handleAddStack(e: FormEvent) {
     e.preventDefault();
     if (agregando) return;
-    const valor = stackDraft.trim();
+    const valor = normalizarTag(stackDraft);
     const peso = Number(stackPesoDraft);
     if (!valor || Number.isNaN(peso)) return;
+    if (criterios.some((c) => c.campo_objetivo === 'stack_tecnologico' && c.valor_comparacion?.toLowerCase() === valor.toLowerCase())) {
+      setActionError(`Ya tenés un criterio para "${valor}".`);
+      return;
+    }
 
     setAgregando(true);
     try {

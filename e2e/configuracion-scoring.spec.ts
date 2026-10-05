@@ -33,6 +33,16 @@ test('cambiar un peso recalcula el score de las ofertas y agregar un criterio lo
   await expect(page.getByText('Docker', { exact: true })).toBeVisible();
   await expect.poll(() => scoreDe('Backend Developer')).toBe(30); // 20 (Docker) + 10 (remoto)
 
+  // Un duplicado casi idéntico ("docker " en minúscula y con espacio) no crea otro criterio.
+  await page.getByPlaceholder('Nueva tecnología...').fill('  docker ');
+  await page.getByRole('button', { name: 'Agregar tecnología' }).click();
+  await expect(page.getByText('Ya tenés un criterio para "docker".')).toBeVisible();
+  const { count } = await api.sb
+    .from('criterios_scoring')
+    .select('id', { count: 'exact', head: true })
+    .ilike('valor_comparacion', 'docker');
+  expect(count).toBe(1);
+
   await page.goto('/ofertas');
   await expect(page.getByText('30', { exact: true })).toBeVisible();
   await expect(page.getByText('40', { exact: true })).toBeVisible();
