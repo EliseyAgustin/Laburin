@@ -1,6 +1,0 @@
-{
-  "name": "Laburin",
-  "description": "Gestión de Empleos - Sistema de tracking de postulaciones",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
