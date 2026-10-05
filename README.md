@@ -22,7 +22,7 @@ React 19 · TypeScript 5.8 · Vite 6 · Tailwind CSS 4 · React Router 7 · Rech
 
 ## Correr localmente
 
-Requisitos: Node.js 22 o superior (se desarrolló y probó con Node 25) y un proyecto de Supabase propio.
+Requisitos: Node.js y un proyecto de Supabase propio. Se probó únicamente con Node.js 25; las dependencias declaran como mínimo Node.js 22.
 
 1. `npm install`
 2. Copiar `.env.example` a `.env` y completar `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` (Project Settings → API del proyecto de Supabase).

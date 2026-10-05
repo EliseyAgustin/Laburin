@@ -1,6 +1,7 @@
--- Laburin — datos de prueba
--- Usa el usuario real creado desde el dashboard (Authentication → Users):
--- UID 00000000-0000-0000-0000-000000000000
+-- Laburin — datos de prueba (opcional; no hace falta para correr la app)
+-- ANTES DE EJECUTAR: reemplazar TODAS las apariciones de 00000000-0000-0000-0000-000000000000
+-- por el UID de un usuario real de TU proyecto (Authentication → Users → User UID).
+-- Con el valor de relleno, el script falla por la clave foránea a auth.users: es a propósito.
 
 -- ============================================================================
 -- Criterios de scoring (RF-12: stack, modalidad, ubicación)
