@@ -131,3 +131,21 @@ export async function importarOfertasRemotas(): Promise<ResultadoImportacion> {
 
   return { insertadas, omitidasPorDuplicado, erroresInsercion, fuentesFallidas };
 }
+
+export function resumenImportacion(resultado: ResultadoImportacion): string {
+  const { insertadas, omitidasPorDuplicado, erroresInsercion, fuentesFallidas } = resultado;
+
+  const partes = [
+    insertadas.length === 1 ? '1 oferta nueva importada' : `${insertadas.length} ofertas nuevas importadas`,
+  ];
+  if (omitidasPorDuplicado > 0) {
+    partes.push(omitidasPorDuplicado === 1 ? '1 duplicada omitida' : `${omitidasPorDuplicado} duplicadas omitidas`);
+  }
+  if (erroresInsercion > 0) {
+    partes.push(erroresInsercion === 1 ? '1 falló al guardar' : `${erroresInsercion} fallaron al guardar`);
+  }
+  if (fuentesFallidas.length > 0) {
+    partes.push(`no se pudo consultar: ${fuentesFallidas.join(', ')}`);
+  }
+  return partes.join(' · ');
+}

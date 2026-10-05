@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { claveDedupeOferta, normalizarArbeitnow, normalizarRemotive, separarNuevas } from '@/services/fuentesExternas';
+import { claveDedupeOferta, normalizarArbeitnow, normalizarRemotive, resumenImportacion, separarNuevas } from '@/services/fuentesExternas';
 import type { Oferta } from '@/types/oferta';
 
 describe('normalizarRemotive', () => {
@@ -153,5 +153,33 @@ describe('separarNuevas', () => {
   it('la misma empresa y rol en otra fuente no es duplicado', () => {
     const existentes = new Set([claveDedupeOferta({ empresa: 'Acme', rol: 'Dev', fuente: 'Arbeitnow' })]);
     expect(separarNuevas([cand('Acme', 'Dev', 'Remotive')], existentes).nuevas).toHaveLength(1);
+  });
+});
+
+describe('resumenImportacion', () => {
+  const base = { insertadas: [], omitidasPorDuplicado: 0, erroresInsercion: 0, fuentesFallidas: [] as string[] };
+  const nuevas = (n: number) => Array.from({ length: n }, () => ({}) as Oferta);
+
+  it('concuerda en plural con cero y con varias', () => {
+    expect(resumenImportacion({ ...base, insertadas: nuevas(0) })).toBe('0 ofertas nuevas importadas');
+    expect(resumenImportacion({ ...base, insertadas: nuevas(8) })).toBe('8 ofertas nuevas importadas');
+  });
+
+  it('concuerda en singular con una', () => {
+    expect(resumenImportacion({ ...base, insertadas: nuevas(1) })).toBe('1 oferta nueva importada');
+    expect(resumenImportacion({ ...base, omitidasPorDuplicado: 1 })).toBe(
+      '0 ofertas nuevas importadas · 1 duplicada omitida'
+    );
+  });
+
+  it('incluye duplicadas, errores y fuentes caídas', () => {
+    expect(
+      resumenImportacion({
+        insertadas: nuevas(2),
+        omitidasPorDuplicado: 3,
+        erroresInsercion: 1,
+        fuentesFallidas: ['Remotive'],
+      })
+    ).toBe('2 ofertas nuevas importadas · 3 duplicadas omitidas · 1 falló al guardar · no se pudo consultar: Remotive');
   });
 });

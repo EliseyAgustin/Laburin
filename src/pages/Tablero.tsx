@@ -25,22 +25,32 @@ export function Tablero() {
   const [dragOverEstado, setDragOverEstado] = useState<EstadoPostulacion | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
+  // Si el efecto se cancela (StrictMode lo monta dos veces en desarrollo), la respuesta de esa corrida se descarta.
+  // Antes la primera respuesta mostraba las tarjetas y la segunda, tardía, pisaba con datos viejos
+  // cualquier movimiento hecho mientras tanto: la tarjeta volvía a su columna aunque la base ya la había guardado.
   useEffect(() => {
-    refetch();
+    let cancelado = false;
+    refetch(() => cancelado);
+    return () => {
+      cancelado = true;
+    };
   }, []);
 
-  async function refetch() {
+  async function refetch(cancelado: () => boolean = () => false) {
     setLoading(true);
     try {
       const data = await listarPostulacionesConOferta();
+      if (cancelado()) return;
       setPostulaciones(data);
       setLoadError(null);
     } catch (err) {
+      if (cancelado()) return;
       setLoadError(mensajeDeError(err, 'No se pudieron cargar las postulaciones.'));
     } finally {
-      setLoading(false);
+      if (!cancelado()) setLoading(false);
     }
 
+    if (cancelado()) return;
     await cargarRecordatorios();
   }
 

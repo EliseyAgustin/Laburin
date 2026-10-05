@@ -263,10 +263,11 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-on-surface-variant mb-2">
+              <label htmlFor="ficha-estado" className="block text-xs font-medium text-on-surface-variant mb-2">
                 Estado actual en el pipeline
               </label>
               <select
+                id="ficha-estado"
                 value={postulacion.estado}
                 onChange={(e) => handleEstadoChange(e.target.value as EstadoPostulacion)}
                 className="w-full appearance-none bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-3 pl-4 pr-10 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary hover:border-outline transition-colors cursor-pointer shadow-sm"

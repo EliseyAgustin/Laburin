@@ -100,7 +100,7 @@ export function StackStep({ value, onChange }: StackStepProps) {
               className="inline-flex items-center gap-1 bg-primary-container text-on-primary-container text-xs font-medium px-2 py-1 rounded-md"
             >
               {tech}
-              <button type="button" onClick={() => toggle(tech)} className="hover:text-error cursor-pointer">
+              <button type="button" onClick={() => toggle(tech)} aria-label={`Quitar ${tech}`} className="hover:text-error cursor-pointer">
                 <X className="w-3 h-3" />
               </button>
             </span>

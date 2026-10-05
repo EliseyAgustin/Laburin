@@ -41,6 +41,9 @@ test('Mi cuenta (nombre, tema, contraseña) y sesión (cerrar, reingresar, los d
   await abrirMenuSiHaceFalta(page);
   await page.getByRole('button', { name: 'Mi cuenta' }).click();
   await expect(page.getByLabel('Nombre para mostrar')).toHaveValue('Sofía Gimenez');
+  await page.getByRole('button', { name: 'Cerrar', exact: true }).click();
+  await expect(page.getByRole('dialog', { name: 'Mi cuenta' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Mi cuenta' }).click();
 
   // --- Tema ---
   const html = page.locator('html');

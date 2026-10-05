@@ -19,13 +19,15 @@ test('ciclo de vida de una oferta: crear, score, postular, mover por las 6 colum
   // --- Crear manualmente ---
   await page.goto('/ofertas');
   await page.getByRole('button', { name: 'Nueva oferta' }).click();
-  await page.getByLabel('Empresa *').fill('Acme Labs');
-  await page.getByLabel('Rol *').fill(ROL);
-  await page.getByLabel('Ubicación').fill('Rosario, Argentina');
-  await page.getByLabel('Modalidad').selectOption('remoto');
-  await page.getByPlaceholder(/React, SQL/).fill('React');
-  await page.getByPlaceholder(/React, SQL/).press('Enter');
-  await page.getByRole('button', { name: 'Crear oferta' }).click();
+  const formulario = page.getByRole('dialog', { name: 'Nueva oferta' });
+  await formulario.getByLabel('Empresa *').fill('Acme Labs');
+  await formulario.getByLabel('Rol *').fill(ROL);
+  await formulario.getByLabel('Ubicación').fill('Rosario, Argentina');
+  await formulario.getByLabel('Modalidad').selectOption('remoto');
+  await formulario.getByPlaceholder(/React, SQL/).fill('React');
+  await formulario.getByPlaceholder(/React, SQL/).press('Enter');
+  await formulario.getByRole('button', { name: 'Crear oferta' }).click();
+  await expect(formulario).toHaveCount(0);
 
   // --- Score: React (15) + remoto (10) con los criterios base ---
   await expect(page.getByRole('heading', { name: ROL, level: 3 })).toBeVisible();
@@ -76,16 +78,22 @@ test('ciclo de vida de una oferta: crear, score, postular, mover por las 6 colum
   await page.getByLabel('Tipo').selectOption('nota');
   await page.getByLabel('Notas').fill('Mandé el CV por mail a RRHH');
   await page.getByRole('button', { name: 'Guardar' }).click();
+  // Se espera a que la interacción esté en la línea de tiempo (no solo el texto escrito en el formulario).
+  const eliminarInteraccion = page.getByRole('button', { name: 'Eliminar interacción' });
+  await expect(eliminarInteraccion).toHaveCount(1);
   await expect(page.getByText('Mandé el CV por mail a RRHH')).toBeVisible();
 
   await page.getByRole('button', { name: 'Agregar interacción' }).click();
   await page.getByLabel('Tipo').selectOption('llamada');
   await page.getByLabel('Notas').fill('Llamada con la recruiter');
   await page.getByRole('button', { name: 'Guardar' }).click();
+  await expect(eliminarInteraccion).toHaveCount(2);
   await expect(page.getByText('Llamada con la recruiter')).toBeVisible();
 
-  await page.getByRole('button', { name: 'Eliminar interacción' }).first().click();
-  await expect(page.getByRole('button', { name: 'Eliminar interacción' })).toHaveCount(1);
+  const borrado = page.waitForResponse((r) => r.request().method() === 'DELETE' && r.url().includes('/interacciones'));
+  await eliminarInteraccion.first().click();
+  expect((await borrado).status()).toBe(204);
+  await expect(eliminarInteraccion).toHaveCount(1);
 
   // --- Recargar: todo persiste ---
   await page.reload();

@@ -20,7 +20,7 @@ import {
   type FiltrosOfertas,
 } from '@/services/ofertas';
 import { crearPostulacion, ESTADO_POSTULACION_LABEL, listarPostulacionesDeOfertas } from '@/services/postulaciones';
-import { importarOfertasRemotas } from '@/services/fuentesExternas';
+import { importarOfertasRemotas, resumenImportacion } from '@/services/fuentesExternas';
 import type { Oferta, OfertaInput } from '@/types/oferta';
 import type { EstadoPostulacion, Postulacion } from '@/types/postulacion';
 
@@ -124,17 +124,7 @@ export function Offers() {
       const resultado = await importarOfertasRemotas();
       recargarDesdeLaPrimera();
 
-      const partes = [`${resultado.insertadas.length} ofertas nuevas importadas`];
-      if (resultado.omitidasPorDuplicado > 0) {
-        partes.push(`${resultado.omitidasPorDuplicado} duplicadas omitidas`);
-      }
-      if (resultado.erroresInsercion > 0) {
-        partes.push(`${resultado.erroresInsercion} fallaron al guardar`);
-      }
-      if (resultado.fuentesFallidas.length > 0) {
-        partes.push(`no se pudo consultar: ${resultado.fuentesFallidas.join(', ')}`);
-      }
-      setImportMessage(partes.join(' · '));
+      setImportMessage(resumenImportacion(resultado));
       setLoadError(null);
     } catch (err) {
       setLoadError(mensajeDeError(err, 'No se pudieron importar ofertas remotas.'));
@@ -275,8 +265,9 @@ export function Offers() {
           className="flex flex-wrap items-center gap-md mb-xl p-4 bg-surface rounded-xl border border-outline-variant shadow-sm"
         >
           <div className="flex-1 min-w-37.5">
-            <label className="block text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Fuente</label>
+            <label htmlFor="filtro-fuente" className="block text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Fuente</label>
             <select
+              id="filtro-fuente"
               value={fuenteDraft}
               onChange={(e) => setFuenteDraft(e.target.value)}
               className="w-full bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg p-2 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none cursor-pointer"
@@ -291,10 +282,11 @@ export function Offers() {
           </div>
 
           <div className="flex-1 min-w-37.5">
-            <label className="block text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Ubicación</label>
+            <label htmlFor="filtro-ubicacion" className="block text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Ubicación</label>
             <div className="relative">
               <MapPin className="absolute left-2 top-2 text-on-surface-variant w-4.5 h-4.5" />
               <input
+                id="filtro-ubicacion"
                 type="text"
                 maxLength={100}
                 value={ubicacionDraft}
@@ -306,11 +298,12 @@ export function Offers() {
           </div>
 
           <div className="w-50">
-            <label className="text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider flex justify-between">
+            <label htmlFor="filtro-score" className="text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider flex justify-between">
               <span>Score Mínimo</span>
               <span className="text-primary font-bold">{scoreDraft}+</span>
             </label>
             <input
+              id="filtro-score"
               type="range"
               min="0"
               max="100"

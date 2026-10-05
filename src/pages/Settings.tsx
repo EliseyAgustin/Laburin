@@ -32,10 +32,12 @@ const MODALIDADES: { value: Modalidad; label: string }[] = [
 
 function ToggleActivo({
   activo,
+  nombre,
   onClick,
   disabled,
 }: {
   activo: boolean;
+  nombre: string;
   onClick: () => void;
   disabled?: boolean;
 }) {
@@ -45,7 +47,7 @@ function ToggleActivo({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      aria-label={activo ? 'Desactivar criterio' : 'Activar criterio'}
+      aria-label={`${activo ? 'Desactivar' : 'Activar'} criterio ${nombre}`}
       title={activo ? 'Activo' : 'Inactivo'}
       className={cn(
         'p-2.5 md:p-1 -m-2.5 md:-m-1 rounded-md transition-colors disabled:opacity-50 cursor-pointer',
@@ -55,6 +57,11 @@ function ToggleActivo({
       <Icon className="w-5 h-5" />
     </button>
   );
+}
+
+function etiquetaCriterio(c: CriterioScoring): string {
+  if (c.campo_objetivo === 'modalidad') return MODALIDAD_LABEL[c.valor_comparacion as Modalidad] ?? c.valor_comparacion ?? c.nombre;
+  return c.valor_comparacion ?? c.nombre;
 }
 
 export function Settings() {
@@ -373,6 +380,7 @@ export function Settings() {
                       type="number"
                       min={PESO_MINIMO}
                       max={PESO_MAXIMO}
+                      aria-label={`Peso de ${etiquetaCriterio(c)}`}
                       value={valorPesoMostrado(c)}
                       disabled={savingIds.has(c.id)}
                       onChange={(e) => handlePesoChange(c.id, e.target.value)}
@@ -384,6 +392,7 @@ export function Settings() {
                   <div className="col-span-1 flex justify-center">
                     <ToggleActivo
                       activo={c.activo}
+                      nombre={etiquetaCriterio(c)}
                       disabled={savingIds.has(c.id)}
                       onClick={() => handleToggleActivo(c)}
                     />
@@ -393,6 +402,7 @@ export function Settings() {
                       type="button"
                       disabled={savingIds.has(c.id)}
                       onClick={() => handleDelete(c)}
+                      aria-label={`Eliminar criterio ${etiquetaCriterio(c)}`}
                       className="text-error hover:bg-error-container p-2.5 md:p-1 -m-2.5 md:-m-1 rounded-md transition-colors cursor-pointer disabled:opacity-50"
                     >
                       <Trash2 className="w-4.5 h-4.5" />
@@ -410,6 +420,7 @@ export function Settings() {
                   maxLength={50}
                   value={stackDraft}
                   onChange={(e) => setStackDraft(e.target.value)}
+                  aria-label="Nueva tecnología"
                   placeholder="Nueva tecnología..."
                   className="flex-1 bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                 />
@@ -418,6 +429,7 @@ export function Settings() {
                   min={PESO_MINIMO}
                   max={PESO_MAXIMO}
                   value={stackPesoDraft}
+                  aria-label="Peso de la nueva tecnología"
                   onChange={(e) => setStackPesoDraft(e.target.value)}
                   onFocus={(e) => e.target.select()}
                   placeholder="Peso"
@@ -425,6 +437,7 @@ export function Settings() {
                 />
                 <button
                   type="submit"
+                  aria-label="Agregar tecnología"
                   disabled={agregando}
                   className="bg-surface-container-low text-primary border border-outline-variant hover:border-primary hover:bg-surface-container transition-colors rounded-lg p-2 flex items-center justify-center cursor-pointer disabled:opacity-50"
                 >
@@ -466,7 +479,8 @@ export function Settings() {
                           type="number"
                           min={PESO_MINIMO}
                           max={PESO_MAXIMO}
-                          value={valorPesoMostrado(c)}
+                          aria-label={`Peso de ${etiquetaCriterio(c)}`}
+                      value={valorPesoMostrado(c)}
                           disabled={savingIds.has(c.id)}
                           onChange={(e) => handlePesoChange(c.id, e.target.value)}
                           onFocus={(e) => e.target.select()}
@@ -477,6 +491,7 @@ export function Settings() {
                       </div>
                       <ToggleActivo
                         activo={c.activo}
+                        nombre={etiquetaCriterio(c)}
                         disabled={savingIds.has(c.id)}
                         onClick={() => handleToggleActivo(c)}
                       />
@@ -484,6 +499,7 @@ export function Settings() {
                         type="button"
                         disabled={savingIds.has(c.id)}
                         onClick={() => handleDelete(c)}
+                      aria-label={`Eliminar criterio ${etiquetaCriterio(c)}`}
                         className="text-error hover:bg-error-container p-2.5 md:p-1 -m-2.5 md:-m-1 rounded-md transition-colors cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-50"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -496,6 +512,7 @@ export function Settings() {
                   <form onSubmit={handleAddModalidad} className="flex items-center gap-2 pt-2 border-t border-outline-variant mt-1">
                     <select
                       value={modalidadDraft}
+                      aria-label="Modalidad del nuevo criterio"
                       onChange={(e) => setModalidadDraft(e.target.value as Modalidad | '')}
                       className="flex-1 bg-surface-container-lowest border border-outline-variant rounded-lg px-2 py-2 text-sm focus:border-primary focus:outline-none cursor-pointer"
                     >
@@ -511,6 +528,7 @@ export function Settings() {
                       min={PESO_MINIMO}
                       max={PESO_MAXIMO}
                       value={modalidadPesoDraft}
+                      aria-label="Peso de la nueva modalidad"
                       onChange={(e) => setModalidadPesoDraft(e.target.value)}
                       onFocus={(e) => e.target.select()}
                       placeholder="Pts"
@@ -518,6 +536,7 @@ export function Settings() {
                     />
                     <button
                       type="submit"
+                      aria-label="Agregar modalidad"
                       disabled={agregando}
                       className="bg-surface-container-low text-primary border border-outline-variant rounded-lg px-2 py-2 hover:bg-surface-container transition-colors cursor-pointer disabled:opacity-50"
                     >
@@ -557,7 +576,8 @@ export function Settings() {
                           type="number"
                           min={PESO_MINIMO}
                           max={PESO_MAXIMO}
-                          value={valorPesoMostrado(c)}
+                          aria-label={`Peso de ${etiquetaCriterio(c)}`}
+                      value={valorPesoMostrado(c)}
                           disabled={savingIds.has(c.id)}
                           onChange={(e) => handlePesoChange(c.id, e.target.value)}
                           onFocus={(e) => e.target.select()}
@@ -568,6 +588,7 @@ export function Settings() {
                       </div>
                       <ToggleActivo
                         activo={c.activo}
+                        nombre={etiquetaCriterio(c)}
                         disabled={savingIds.has(c.id)}
                         onClick={() => handleToggleActivo(c)}
                       />
@@ -575,6 +596,7 @@ export function Settings() {
                         type="button"
                         disabled={savingIds.has(c.id)}
                         onClick={() => handleDelete(c)}
+                      aria-label={`Eliminar criterio ${etiquetaCriterio(c)}`}
                         className="text-error hover:bg-error-container p-2.5 md:p-1 -m-2.5 md:-m-1 rounded-md transition-colors cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-50"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -589,6 +611,7 @@ export function Settings() {
                   maxLength={100}
                   value={ubicacionDraft}
                   onChange={(e) => setUbicacionDraft(e.target.value)}
+                  aria-label="Nueva ubicación"
                   placeholder="Ej: Zona Norte"
                   className="flex-1 bg-surface-container-lowest border border-outline-variant rounded-lg px-2 py-2 text-sm focus:border-primary focus:outline-none"
                 />
@@ -597,6 +620,7 @@ export function Settings() {
                   min={PESO_MINIMO}
                   max={PESO_MAXIMO}
                   value={ubicacionPesoDraft}
+                  aria-label="Peso de la nueva ubicación"
                   onChange={(e) => setUbicacionPesoDraft(e.target.value)}
                   onFocus={(e) => e.target.select()}
                   placeholder="Pts"
@@ -604,6 +628,7 @@ export function Settings() {
                 />
                 <button
                   type="submit"
+                  aria-label="Agregar ubicación"
                   disabled={agregando}
                   className="bg-surface-container-low text-primary border border-outline-variant rounded-lg px-2 py-2 hover:bg-surface-container transition-colors cursor-pointer disabled:opacity-50"
                 >

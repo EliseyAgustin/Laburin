@@ -90,7 +90,7 @@ test.describe('más de 1000 ofertas', () => {
     );
     await page.goto('/ofertas');
     await page.getByRole('button', { name: 'Importar ofertas remotas' }).click();
-    await expect(page.getByText('1 ofertas nuevas importadas · 1 duplicadas omitidas')).toBeVisible();
+    await expect(page.getByText('1 oferta nueva importada · 1 duplicada omitida')).toBeVisible();
 
     expect(await api.contarOfertas()).toBe(TOTAL + 1);
     const { count } = await api.sb
@@ -102,8 +102,13 @@ test.describe('más de 1000 ofertas', () => {
 
   test('Analytics cuenta las 1100 ofertas y el score promedio es coherente', async ({ page }) => {
     await page.goto('/analytics');
+    // La tarjeta KPI es el div más interno que contiene el título y el párrafo de detalle.
     const tarjeta = (titulo: string) =>
-      page.locator('div').filter({ has: page.getByText(titulo, { exact: true }) }).last();
+      page
+        .locator('div')
+        .filter({ has: page.getByText(titulo, { exact: true }) })
+        .filter({ has: page.locator('p') })
+        .last();
 
     await expect(tarjeta('Ofertas cargadas')).toContainText(String(TOTAL));
     // 550 ofertas con 25 y 550 con 10 => promedio 17.5
@@ -134,7 +139,11 @@ test.describe('más de 1000 ofertas', () => {
     expect(Number(data?.puntaje_scoring)).toBe(30);
 
     await page.goto('/analytics');
-    const tarjeta = page.locator('div').filter({ has: page.getByText('Score promedio', { exact: true }) }).last();
+    const tarjeta = page
+      .locator('div')
+      .filter({ has: page.getByText('Score promedio', { exact: true }) })
+      .filter({ has: page.locator('p') })
+      .last();
     await expect(tarjeta).toContainText('20.0'); // (550*30 + 550*10) / 1100
   });
 });
