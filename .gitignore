@@ -7,3 +7,11 @@ coverage/
 .env*
 !.env.example
 .claude
+
+# E2E (Playwright)
+.env.e2e
+!.env.e2e.example
+e2e/.auth/
+e2e/.cuentas-temporales.json
+playwright-report/
+test-results/
