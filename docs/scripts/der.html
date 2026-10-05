@@ -1,0 +1,142 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>
+  * { box-sizing: border-box; }
+  body { margin: 0; padding: 30px; font-family: 'Segoe UI', Arial, sans-serif; background: #ffffff; width: 1650px; }
+  .canvas { position: relative; width: 1580px; height: 1000px; }
+  .tabla { position: absolute; width: 250px; border: 1.5px solid #1e4fd8; border-radius: 8px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.08); overflow: hidden; }
+  .tabla.externa { border-color: #6b7386; border-style: dashed; }
+  .tabla h3 { margin: 0; padding: 8px 10px; background: #1e4fd8; color: #fff; font-size: 13px; }
+  .tabla.externa h3 { background: #6b7386; }
+  .tabla ul { list-style: none; margin: 0; padding: 7px 10px 9px; font-size: 11.5px; color: #12172b; line-height: 18px; }
+  .tabla li.pk { font-weight: 700; color: #0e2e86; }
+  .tabla li.fk { color: #924700; }
+  svg.lineas { position: absolute; top: 0; left: 0; width: 1580px; height: 1000px; pointer-events: none; }
+  .etiqueta { position: absolute; font-size: 11.5px; font-weight: 600; color: #1e4fd8; background: #eef1f8; padding: 2px 6px; border-radius: 4px; }
+</style></head>
+<body>
+<div class="canvas">
+  <svg class="lineas">
+    <defs><marker id="pata" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#6b7386" stroke-width="1.3"/></marker></defs>
+    <!-- auth.users -> perfil_usuario -->
+    <path d="M 100 125 L 100 165" fill="none" stroke="#6b7386" stroke-width="1.3" marker-end="url(#pata)"/>
+    <!-- auth.users -> criterios_scoring -->
+    <path d="M 270 90 L 465 90 L 465 165" fill="none" stroke="#6b7386" stroke-width="1.3" marker-end="url(#pata)"/>
+    <!-- auth.users -> ofertas -->
+    <path d="M 270 70 L 825 70 L 825 165" fill="none" stroke="#6b7386" stroke-width="1.3" marker-end="url(#pata)"/>
+    <!-- ofertas -> postulaciones -->
+    <path d="M 825 370 L 825 450" fill="none" stroke="#1e4fd8" stroke-width="1.6" marker-end="url(#pata)"/>
+    <!-- postulaciones -> interacciones -->
+    <path d="M 955 480 L 1075 480 L 1075 420 L 1200 420" fill="none" stroke="#1e4fd8" stroke-width="1.6" marker-end="url(#pata)"/>
+    <!-- postulaciones -> recordatorios -->
+    <path d="M 955 520 L 1075 520 L 1075 610 L 1200 610" fill="none" stroke="#1e4fd8" stroke-width="1.6" marker-end="url(#pata)"/>
+    <!-- postulaciones -> historial -->
+    <path d="M 900 580 L 900 660" fill="none" stroke="#1e4fd8" stroke-width="1.6" marker-end="url(#pata)"/>
+  </svg>
+
+  <div class="tabla externa" style="left:40px; top:40px; width:230px;">
+    <h3>auth.users (Supabase)</h3>
+    <ul><li class="pk">id (PK)</li><li>email</li></ul>
+  </div>
+
+  <div class="tabla" style="left:40px; top:165px;">
+    <h3>perfil_usuario</h3>
+    <ul>
+      <li class="fk">user_id (PK, FK)</li>
+      <li>rol_buscado</li>
+      <li>stack_interes[]</li>
+      <li>modalidad_preferida</li>
+      <li>ubicacion</li>
+      <li>seniority</li>
+      <li>onboarding_completado</li>
+      <li>dias_inactividad_recordatorio</li>
+    </ul>
+  </div>
+
+  <div class="tabla" style="left:350px; top:165px;">
+    <h3>criterios_scoring</h3>
+    <ul>
+      <li class="pk">id (PK)</li>
+      <li class="fk">user_id (FK)</li>
+      <li>nombre</li>
+      <li>peso</li>
+      <li>tipo_coincidencia</li>
+      <li>campo_objetivo</li>
+      <li>valor_comparacion</li>
+      <li>rango_min / rango_max</li>
+      <li>activo</li>
+    </ul>
+  </div>
+
+  <div class="tabla" style="left:700px; top:165px;">
+    <h3>ofertas</h3>
+    <ul>
+      <li class="pk">id (PK)</li>
+      <li class="fk">user_id (FK)</li>
+      <li>empresa / rol</li>
+      <li>ubicacion / modalidad</li>
+      <li>stack_tecnologico[]</li>
+      <li>fuente</li>
+      <li>fecha_publicacion</li>
+      <li>puntaje_scoring</li>
+    </ul>
+  </div>
+  <div class="etiqueta" style="left:845px; top:400px;">1 : 0..1</div>
+
+  <div class="tabla" style="left:700px; top:450px;">
+    <h3>postulaciones</h3>
+    <ul>
+      <li class="pk">id (PK)</li>
+      <li class="fk">user_id (FK, derivado)</li>
+      <li class="fk">oferta_id (FK, UNIQUE)</li>
+      <li>estado</li>
+      <li>fecha_postulacion</li>
+    </ul>
+  </div>
+
+  <div class="tabla" style="left:1200px; top:340px;">
+    <h3>interacciones</h3>
+    <ul>
+      <li class="pk">id (PK)</li>
+      <li class="fk">user_id (FK, derivado)</li>
+      <li class="fk">postulacion_id (FK)</li>
+      <li>tipo</li>
+      <li>fecha</li>
+      <li>notas</li>
+    </ul>
+  </div>
+  <div class="etiqueta" style="left:1050px; top:435px;">1 : N</div>
+
+  <div class="tabla" style="left:1200px; top:610px;">
+    <h3>recordatorios</h3>
+    <ul>
+      <li class="pk">id (PK)</li>
+      <li class="fk">user_id (FK, derivado)</li>
+      <li class="fk">postulacion_id (FK)</li>
+      <li>dias_inactividad</li>
+      <li>estado</li>
+      <li>fecha_generado / fecha_resuelto</li>
+    </ul>
+  </div>
+  <div class="etiqueta" style="left:1050px; top:598px;">1 : N</div>
+
+  <div class="tabla" style="left:700px; top:660px;">
+    <h3>postulacion_historial_estados</h3>
+    <ul>
+      <li class="pk">id (PK)</li>
+      <li class="fk">user_id (FK, derivado)</li>
+      <li class="fk">postulacion_id (FK)</li>
+      <li>estado_anterior / estado_nuevo</li>
+      <li>fecha</li>
+      <li>es_estimado</li>
+    </ul>
+  </div>
+  <div class="etiqueta" style="left:915px; top:610px;">1 : N (trigger)</div>
+
+  <div style="position:absolute; left:40px; top:850px; width:900px; font-size:12px; color:#4b5468; line-height:19px;">
+    Líneas grises: referencia directa a <b>auth.users</b> (dueño de cada fila, RLS por <code>user_id</code>).<br>
+    Líneas azules: relaciones entre tablas de dominio. <code>user_id</code> en interacciones/recordatorios/historial se completa solo
+    (trigger), derivado del dueño de la postulación — no lo decide el cliente.<br>
+    <code>postulaciones.oferta_id</code> es <b>UNIQUE</b>: a lo sumo una postulación por oferta.
+  </div>
+</div>
+</body></html>

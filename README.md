@@ -31,6 +31,10 @@ El alias `@` apunta a `src/` (configurado en `vite.config.ts` y `tsconfig.json`)
 - [`docs/srs.md`](docs/srs.md) — Especificación de Requerimientos (Semana 1)
 - [`legacy/jobbot-v5.gs`](legacy/jobbot-v5.gs) — Antecedente funcional (Google Apps Script), referencia histórica para el relevamiento de reglas de negocio. No se ejecuta dentro de Laburin.
 
+## Documentación (.docx)
+
+La Memoria Técnica y el Manual de Usuario (`Laburin-Memoria-Tecnica.docx`, `Laburin-Manual-de-Usuario.docx`, en la raíz) se generan con scripts de [`docs/scripts/`](docs/scripts/): para regenerarlos, editar el texto en `memoria-tecnica.mjs` / `manual-usuario.mjs` y correr `npm run docs:generar`. Las capturas viven en `docs/scripts/capturas/`; `npm run docs:capturas` rehace las de Ofertas y Configuración con una cuenta de prueba nueva (requiere la app corriendo con `npm run dev` y las variables de Supabase en `.env`) y `npm run docs:der` regenera el diagrama entidad-relación desde `der.html`.
+
 ## Estado conocido
 
 - `src/pages/Login.tsx` está vacío; `App.tsx` lo importa, por lo que el build de producción (`npm run build`) falla hasta que se implemente. Pendiente, fuera del alcance de la reorganización de carpetas.
