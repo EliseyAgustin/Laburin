@@ -287,7 +287,7 @@ function Contenido({
 
         <ChartCard title="Distribución de puntajes" subtitle="Franjas sobre el máximo posible: Alto ≥75% · Medio 50–75% · Bajo <50%">
           {bandasData === null ? (
-            <SinDatos mensaje="No hay criterios activos. Activá al menos uno en Configuración para ver las franjas." />
+            <SinDatos mensaje="No hay criterios activos. Activá al menos uno en Mi perfil de búsqueda para ver las franjas." />
           ) : m.ofertas.total === 0 ? (
             <SinDatos mensaje="Todavía no cargaste ofertas." />
           ) : (

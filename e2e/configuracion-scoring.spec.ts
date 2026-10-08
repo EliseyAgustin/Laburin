@@ -27,6 +27,8 @@ test('cambiar un peso recalcula el score de las ofertas y agregar un criterio lo
 
   // --- Agregar un criterio nuevo: Docker = 20 ---
   await page.goto('/mi-perfil');
+  // El peso inicial de una tecnología nueva es el mismo que le pone el Onboarding.
+  await expect(page.getByLabel('Peso de la nueva tecnología')).toHaveValue('15');
   await page.getByPlaceholder('Ej: React, Python, SQL').fill('Docker');
   await page.getByPlaceholder('Peso').fill('20');
   await page.getByRole('button', { name: 'Agregar tecnología' }).click();

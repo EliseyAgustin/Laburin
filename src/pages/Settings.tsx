@@ -12,6 +12,7 @@ import {
   eliminarCriterio,
   listarCriterios,
   MODALIDAD_LABEL,
+  PESO_DEFECTO,
   PESO_MAXIMO,
   PESO_MINIMO,
 } from '@/services/criteriosScoring';
@@ -79,11 +80,11 @@ export function Settings() {
   const [pesoDrafts, setPesoDrafts] = useState<Record<string, string>>({});
 
   const [stackDraft, setStackDraft] = useState('');
-  const [stackPesoDraft, setStackPesoDraft] = useState('10');
+  const [stackPesoDraft, setStackPesoDraft] = useState(String(PESO_DEFECTO.stack));
   const [modalidadDraft, setModalidadDraft] = useState<Modalidad | ''>('');
-  const [modalidadPesoDraft, setModalidadPesoDraft] = useState('10');
+  const [modalidadPesoDraft, setModalidadPesoDraft] = useState(String(PESO_DEFECTO.modalidad));
   const [ubicacionDraft, setUbicacionDraft] = useState('');
-  const [ubicacionPesoDraft, setUbicacionPesoDraft] = useState('10');
+  const [ubicacionPesoDraft, setUbicacionPesoDraft] = useState(String(PESO_DEFECTO.ubicacion));
   const [agregando, setAgregando] = useState(false);
 
   // Mismo patrón que pesoDrafts: texto crudo mientras se escribe, se valida y guarda al salir del campo.
@@ -217,7 +218,7 @@ export function Settings() {
       const nuevo = await crearCriterio(construirCriterio('stack', valor, clampPeso(peso)));
       setCriterios((prev) => [...prev, nuevo]);
       setStackDraft('');
-      setStackPesoDraft('10');
+      setStackPesoDraft(String(PESO_DEFECTO.stack));
       setActionError(null);
     } catch (err) {
       setActionError(mensajeDeError(err, 'No se pudo crear el criterio.'));
@@ -237,7 +238,7 @@ export function Settings() {
       const nuevo = await crearCriterio(construirCriterio('modalidad', modalidadDraft, clampPeso(peso)));
       setCriterios((prev) => [...prev, nuevo]);
       setModalidadDraft('');
-      setModalidadPesoDraft('10');
+      setModalidadPesoDraft(String(PESO_DEFECTO.modalidad));
       setActionError(null);
     } catch (err) {
       setActionError(mensajeDeError(err, 'No se pudo crear el criterio.'));
@@ -258,7 +259,7 @@ export function Settings() {
       const nuevo = await crearCriterio(construirCriterio('ubicacion', valor, clampPeso(peso)));
       setCriterios((prev) => [...prev, nuevo]);
       setUbicacionDraft('');
-      setUbicacionPesoDraft('10');
+      setUbicacionPesoDraft(String(PESO_DEFECTO.ubicacion));
       setActionError(null);
     } catch (err) {
       setActionError(mensajeDeError(err, 'No se pudo crear el criterio.'));

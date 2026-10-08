@@ -10,6 +10,14 @@ export type CategoriaCriterio = 'stack' | 'modalidad' | 'ubicacion';
 export const PESO_MINIMO = 0;
 export const PESO_MAXIMO = 999;
 
+// Peso inicial de cada tipo de criterio: lo usa el Onboarding al crear el perfil y los formularios de
+// "Mi perfil de búsqueda" al agregar uno nuevo, para que una misma tecnología valga lo mismo en ambos lados.
+export const PESO_DEFECTO: Record<CategoriaCriterio, number> = {
+  stack: 15,
+  modalidad: 10,
+  ubicacion: 5,
+};
+
 export function clampPeso(valor: number): number {
   if (Number.isNaN(valor)) return PESO_MINIMO;
   return Math.min(PESO_MAXIMO, Math.max(PESO_MINIMO, valor));

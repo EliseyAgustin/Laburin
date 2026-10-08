@@ -4,7 +4,7 @@ import type { Interaccion } from '@/types/interaccion';
 import type { EstadoPostulacion, Postulacion } from '@/types/postulacion';
 import type { Recordatorio } from '@/types/recordatorio';
 
-// Fuente única del default: la usan el motor, la UI de Configuración y (por contrato) el default de la columna en la base.
+// Fuente única del default: la usan el motor, la UI de Mi perfil de búsqueda y (por contrato) el default de la columna en la base.
 export const DIAS_INACTIVIDAD_DEFECTO = 7;
 export const DIAS_INACTIVIDAD_MIN = 1;
 export const DIAS_INACTIVIDAD_MAX = 90;

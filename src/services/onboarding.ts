@@ -1,10 +1,6 @@
 import { supabase } from '@/lib/supabase';
-import { construirCriterio } from '@/services/criteriosScoring';
+import { construirCriterio, PESO_DEFECTO } from '@/services/criteriosScoring';
 import type { PerfilUsuario, PerfilUsuarioInput } from '@/types/perfilUsuario';
-
-const PESO_STACK = 15;
-const PESO_MODALIDAD = 10;
-const PESO_UBICACION = 5;
 
 export async function obtenerPerfil(): Promise<PerfilUsuario | null> {
   const {
@@ -36,14 +32,14 @@ export async function completarOnboarding(input: PerfilUsuarioInput): Promise<vo
     );
   if (perfilError) throw perfilError;
 
-  const criterios = input.stack_interes.map((tech) => construirCriterio('stack', tech, PESO_STACK));
+  const criterios = input.stack_interes.map((tech) => construirCriterio('stack', tech, PESO_DEFECTO.stack));
 
   if (input.modalidad_preferida) {
-    criterios.push(construirCriterio('modalidad', input.modalidad_preferida, PESO_MODALIDAD));
+    criterios.push(construirCriterio('modalidad', input.modalidad_preferida, PESO_DEFECTO.modalidad));
   }
 
   if (input.ubicacion?.trim()) {
-    criterios.push(construirCriterio('ubicacion', input.ubicacion.trim(), PESO_UBICACION));
+    criterios.push(construirCriterio('ubicacion', input.ubicacion.trim(), PESO_DEFECTO.ubicacion));
   }
 
   if (criterios.length > 0) {

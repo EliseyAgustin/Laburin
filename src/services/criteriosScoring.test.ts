@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { clampPeso, construirCriterio, PESO_MAXIMO, PESO_MINIMO } from '@/services/criteriosScoring';
+import { clampPeso, construirCriterio, PESO_DEFECTO, PESO_MAXIMO, PESO_MINIMO } from '@/services/criteriosScoring';
 
 describe('construirCriterio', () => {
   it('arma un criterio "contiene" sobre stack_tecnologico para la categoría stack', () => {
@@ -63,5 +63,16 @@ describe('clampPeso', () => {
   it('los bordes exactos del rango quedan igual', () => {
     expect(clampPeso(PESO_MINIMO)).toBe(PESO_MINIMO);
     expect(clampPeso(PESO_MAXIMO)).toBe(PESO_MAXIMO);
+  });
+});
+
+describe('PESO_DEFECTO', () => {
+  it('es la fuente única de los pesos iniciales: stack 15, modalidad 10, ubicación 5', () => {
+    expect(PESO_DEFECTO).toEqual({ stack: 15, modalidad: 10, ubicacion: 5 });
+  });
+  it('queda dentro del rango permitido', () => {
+    for (const peso of Object.values(PESO_DEFECTO)) {
+      expect(clampPeso(peso)).toBe(peso);
+    }
   });
 });
