@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { agregarTag, normalizarTag } from '@/lib/tags';
+import { agregarTag, contieneTag, normalizarTag, quitarTag } from '@/lib/tags';
 
 describe('normalizarTag', () => {
   it('recorta los extremos y colapsa espacios internos', () => {
@@ -27,6 +27,28 @@ describe('agregarTag', () => {
   it('no muta la lista original', () => {
     const original = ['React'];
     agregarTag(original, 'Vue');
+    expect(original).toEqual(['React']);
+  });
+});
+
+describe('contieneTag', () => {
+  it('compara sin distinguir mayúsculas ni espacios de más', () => {
+    expect(contieneTag(['SQL'], 'sql')).toBe(true);
+    expect(contieneTag(['Spring Boot'], '  spring   boot ')).toBe(true);
+  });
+  it('devuelve false si no está o si el valor está vacío', () => {
+    expect(contieneTag(['SQL'], 'NoSQL')).toBe(false);
+    expect(contieneTag(['SQL'], '   ')).toBe(false);
+  });
+});
+
+describe('quitarTag', () => {
+  it('quita el tag sin distinguir mayúsculas', () => {
+    expect(quitarTag(['React', 'SQL'], 'sql')).toEqual(['React']);
+  });
+  it('no muta la lista original y deja igual lo que no está', () => {
+    const original = ['React'];
+    expect(quitarTag(original, 'Vue')).toEqual(['React']);
     expect(original).toEqual(['React']);
   });
 });

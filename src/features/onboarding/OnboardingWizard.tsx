@@ -1,17 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { CheckCircle2 } from 'lucide-react';
 import { mensajeDeError } from '@/lib/errores';
-import { completarOnboarding, omitirOnboarding } from '@/services/onboarding';
 import { RUTAS } from '@/lib/rutas';
+import { agregarTag } from '@/lib/tags';
+import { completarOnboarding, omitirOnboarding } from '@/services/onboarding';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import type { Modalidad } from '@/types/oferta';
 import type { Seniority } from '@/types/perfilUsuario';
 import { RolStep } from './steps/RolStep';
 import { StackStep } from './steps/StackStep';
 import { ModalidadStep } from './steps/ModalidadStep';
-import { SeniorityStep } from './steps/SeniorityStep';
+import { NivelExperienciaStep } from './steps/NivelExperienciaStep';
+import { ResumenStep } from './steps/ResumenStep';
+import { validarPasoOnboarding, type ErroresOnboarding } from './validacion';
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 export function OnboardingWizard() {
   const navigate = useNavigate();
@@ -20,11 +24,14 @@ export function OnboardingWizard() {
   const [step, setStep] = useState(1);
   const [rolBuscado, setRolBuscado] = useState('');
   const [stackInteres, setStackInteres] = useState<string[]>([]);
+  const [stackDraft, setStackDraft] = useState('');
   const [modalidad, setModalidad] = useState<Modalidad | null>(null);
   const [ubicacion, setUbicacion] = useState('');
-  const [seniority, setSeniority] = useState<Seniority | null>(null);
+  const [nivel, setNivel] = useState<Seniority | null>(null);
+  const [errores, setErrores] = useState<ErroresOnboarding>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [terminado, setTerminado] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   // Un segundo tap rápido en "Continuar"/"Atrás" (frecuente en mobile) podía disparar otro cambio
@@ -33,29 +40,65 @@ export function OnboardingWizard() {
     setIsTransitioning(false);
   }, [step]);
 
-  function goToStep(delta: number) {
+  function limpiarError(campo: keyof ErroresOnboarding) {
+    setErrores((e) => ({ ...e, [campo]: undefined }));
+  }
+
+  // Lo escrito en "Otra tecnología" y no agregado se suma solo al avanzar: antes se perdía en silencio.
+  function confirmarPendiente(): string[] {
+    const tecnologias = agregarTag(stackInteres, stackDraft);
+    setStackInteres(tecnologias);
+    setStackDraft('');
+    return tecnologias;
+  }
+
+  function validar(paso: number, tecnologias: string[]): boolean {
+    const resultado = validarPasoOnboarding(paso, { rol: rolBuscado, tecnologias, modalidad, ubicacion });
+    setErrores(resultado);
+    return Object.keys(resultado).length === 0;
+  }
+
+  function continuar() {
     if (isTransitioning) return;
+    const tecnologias = step === 2 ? confirmarPendiente() : stackInteres;
+    if (!validar(step, tecnologias)) return;
     setIsTransitioning(true);
-    setStep((s) => Math.min(TOTAL_STEPS, Math.max(1, s + delta)));
+    setStep((s) => Math.min(TOTAL_STEPS, s + 1));
+  }
+
+  function atras() {
+    if (isTransitioning) return;
+    setErrores({});
+    setIsTransitioning(true);
+    setStep((s) => Math.max(1, s - 1));
   }
 
   async function finish() {
+    const tecnologias = confirmarPendiente();
+    if (!validar(5, tecnologias)) return;
+
     setSaving(true);
     setError(null);
     try {
       await completarOnboarding({
-        rol_buscado: rolBuscado.trim() || null,
-        stack_interes: stackInteres,
+        rol_buscado: rolBuscado.trim(),
+        stack_interes: tecnologias,
         modalidad_preferida: modalidad,
-        ubicacion: ubicacion.trim() || null,
-        seniority,
+        ubicacion: ubicacion.trim(),
+        seniority: nivel,
       });
-      await refresh();
-      navigate(RUTAS.postulaciones, { replace: true });
+      // No se refresca el estado de onboarding acá: eso desmontaría esta pantalla antes de mostrar la confirmación.
+      setTerminado(true);
     } catch (err) {
       setError(mensajeDeError(err, 'No se pudo guardar tu perfil.'));
+    } finally {
       setSaving(false);
     }
+  }
+
+  function irA(ruta: string) {
+    navigate(ruta, { replace: true });
+    void refresh();
   }
 
   async function skip() {
@@ -66,9 +109,40 @@ export function OnboardingWizard() {
       await refresh();
       navigate(RUTAS.postulaciones, { replace: true });
     } catch (err) {
-      setError(mensajeDeError(err, 'No se pudo omitir el onboarding.'));
+      setError(mensajeDeError(err, 'No se pudo omitir la configuración inicial.'));
       setSaving(false);
     }
+  }
+
+  if (terminado) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-surface p-margin">
+        <div className="w-full max-w-128 bg-surface-container-lowest border border-outline-variant rounded-xl p-8 shadow-sm flex flex-col items-center text-center gap-4">
+          <CheckCircle2 className="w-14 h-14 text-success" aria-hidden="true" />
+          <h1 className="text-2xl font-heading font-bold text-on-surface">Tu perfil quedó listo</h1>
+          <p className="text-sm text-on-surface-variant">
+            Ya ordenamos las ofertas según lo que buscás. Podés cambiar estos datos cuando quieras en Mi perfil de
+            búsqueda.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 w-full justify-center pt-2">
+            <button
+              type="button"
+              onClick={() => irA(RUTAS.ofertas)}
+              className="bg-primary text-on-primary text-sm font-medium px-6 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-all cursor-pointer"
+            >
+              Ver ofertas
+            </button>
+            <button
+              type="button"
+              onClick={() => irA(RUTAS.postulaciones)}
+              className="bg-surface-container-high text-on-surface text-sm font-medium px-6 py-2.5 rounded-lg border border-outline-variant hover:bg-surface-variant transition-all cursor-pointer"
+            >
+              Ir a Mis postulaciones
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -96,24 +170,88 @@ export function OnboardingWizard() {
           </div>
         </div>
 
-        {step === 1 && <RolStep value={rolBuscado} onChange={setRolBuscado} />}
-        {step === 2 && <StackStep value={stackInteres} onChange={setStackInteres} />}
+        {step === 1 && (
+          <RolStep
+            value={rolBuscado}
+            onChange={(v) => {
+              setRolBuscado(v);
+              limpiarError('rol');
+            }}
+            error={errores.rol}
+          />
+        )}
+        {step === 2 && (
+          <StackStep
+            value={stackInteres}
+            onChange={(v) => {
+              setStackInteres(v);
+              limpiarError('tecnologias');
+            }}
+            draft={stackDraft}
+            onDraftChange={(v) => {
+              setStackDraft(v);
+              limpiarError('tecnologias');
+            }}
+            error={errores.tecnologias}
+          />
+        )}
         {step === 3 && (
           <ModalidadStep
             modalidad={modalidad}
-            onModalidadChange={setModalidad}
+            onModalidadChange={(v) => {
+              setModalidad(v);
+              limpiarError('modalidad');
+            }}
             ubicacion={ubicacion}
-            onUbicacionChange={setUbicacion}
+            onUbicacionChange={(v) => {
+              setUbicacion(v);
+              limpiarError('ubicacion');
+            }}
+            errorModalidad={errores.modalidad}
+            errorUbicacion={errores.ubicacion}
           />
         )}
-        {step === 4 && <SeniorityStep value={seniority} onChange={setSeniority} />}
+        {step === 4 && <NivelExperienciaStep value={nivel} onChange={setNivel} />}
+        {step === 5 && (
+          <ResumenStep
+            rol={rolBuscado}
+            onRolChange={(v) => {
+              setRolBuscado(v);
+              limpiarError('rol');
+            }}
+            tecnologias={stackInteres}
+            onTecnologiasChange={(v) => {
+              setStackInteres(v);
+              limpiarError('tecnologias');
+            }}
+            tecnologiaDraft={stackDraft}
+            onTecnologiaDraftChange={setStackDraft}
+            modalidad={modalidad}
+            onModalidadChange={(v) => {
+              setModalidad(v);
+              limpiarError('modalidad');
+            }}
+            ubicacion={ubicacion}
+            onUbicacionChange={(v) => {
+              setUbicacion(v);
+              limpiarError('ubicacion');
+            }}
+            nivel={nivel}
+            onNivelChange={setNivel}
+            errores={errores}
+          />
+        )}
 
-        {error && <p className="text-sm text-error">{error}</p>}
+        {error && (
+          <p role="alert" className="text-sm text-error">
+            {error}
+          </p>
+        )}
 
         <div className="flex justify-between items-center pt-2">
           <button
             type="button"
-            onClick={() => goToStep(-1)}
+            onClick={atras}
             disabled={step === 1 || saving || isTransitioning}
             className="px-4 py-2 rounded-lg text-on-surface-variant text-sm font-medium hover:bg-surface-container-high transition-colors cursor-pointer disabled:opacity-0"
           >
@@ -123,7 +261,7 @@ export function OnboardingWizard() {
           {step < TOTAL_STEPS ? (
             <button
               type="button"
-              onClick={() => goToStep(1)}
+              onClick={continuar}
               disabled={isTransitioning}
               className="bg-primary text-on-primary text-sm font-medium px-6 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-all cursor-pointer disabled:opacity-50"
             >
@@ -136,7 +274,7 @@ export function OnboardingWizard() {
               disabled={saving}
               className="bg-primary text-on-primary text-sm font-medium px-6 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-all disabled:opacity-50 cursor-pointer"
             >
-              {saving ? 'Guardando…' : 'Finalizar'}
+              {saving ? 'Guardando…' : 'Confirmar y terminar'}
             </button>
           )}
         </div>

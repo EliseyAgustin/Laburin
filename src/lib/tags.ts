@@ -12,3 +12,14 @@ export function agregarTag(tags: string[], valor: string): string[] {
   if (tags.some((tag) => normalizarTag(tag).toLowerCase() === clave)) return tags;
   return [...tags, nuevo];
 }
+
+export function contieneTag(tags: string[], valor: string): boolean {
+  const clave = normalizarTag(valor).toLowerCase();
+  if (!clave) return false;
+  return tags.some((tag) => normalizarTag(tag).toLowerCase() === clave);
+}
+
+export function quitarTag(tags: string[], valor: string): string[] {
+  const clave = normalizarTag(valor).toLowerCase();
+  return tags.filter((tag) => normalizarTag(tag).toLowerCase() !== clave);
+}
