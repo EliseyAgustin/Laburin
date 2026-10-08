@@ -2,15 +2,16 @@ import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Briefcase, LayoutDashboard, BarChart2, Settings, LogOut, X, UserCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { RUTAS } from '@/lib/rutas';
 import { useAuth } from '@/hooks/useAuth';
 import { CuentaModal } from '@/components/CuentaModal';
 import logoIcono from '@/assets/logo/laburin-logo-icono.svg';
 
 const navItems = [
-  { icon: Briefcase, label: 'Ofertas', path: '/ofertas' },
-  { icon: LayoutDashboard, label: 'Tablero', path: '/tablero' },
-  { icon: BarChart2, label: 'Analytics', path: '/analytics' },
-  { icon: Settings, label: 'Configuración', path: '/configuracion' },
+  { icon: Briefcase, label: 'Ofertas', path: RUTAS.ofertas },
+  { icon: LayoutDashboard, label: 'Mis postulaciones', path: RUTAS.postulaciones },
+  { icon: BarChart2, label: 'Mi progreso', path: RUTAS.progreso },
+  { icon: Settings, label: 'Mi perfil de búsqueda', path: RUTAS.perfil },
 ];
 
 interface SidebarProps {

@@ -19,7 +19,7 @@ test('mover una tarjeta justo después de cargar no se revierte cuando llega una
     await route.fulfill({ response: respuesta });
   });
 
-  await page.goto('/tablero');
+  await page.goto('/mis-postulaciones');
   const tarjeta = page.getByRole('heading', { name: 'Carrera Dev', level: 4 });
   await expect(tarjeta).toBeVisible();
 

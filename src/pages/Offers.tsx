@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Download, Filter, MapPin, Clock, Building2, Pencil, Trash2, Plus, Inbox, Send, ChevronLeft, ChevronRight } from 'lucide-react';
+import { PageHeader } from '@/components/PageHeader';
+import { PrimerosPasos } from '@/components/PrimerosPasos';
 import { mensajeDeError } from '@/lib/errores';
 import { ApplicationDetailPanel } from '@/components/ApplicationDetailPanel';
 import { ConfirmarEliminacionModal } from '@/components/ConfirmarEliminacionModal';
@@ -188,6 +190,15 @@ export function Offers() {
     setFiltros({ fuente: fuenteDraft, ubicacion: ubicacionDraft.trim(), score: scoreDraft });
   }
 
+  function handleLimpiarFiltros() {
+    setFuenteDraft('');
+    setUbicacionDraft('');
+    setScoreDraft(0);
+    setSeleccionadas(new Set());
+    setPagina(1);
+    setFiltros(FILTROS_OFERTAS_VACIOS);
+  }
+
   const hayFiltros =
     filtros.fuente !== FILTROS_OFERTAS_VACIOS.fuente ||
     filtros.ubicacion !== FILTROS_OFERTAS_VACIOS.ubicacion ||
@@ -258,6 +269,13 @@ export function Offers() {
   return (
     <div ref={raizRef} className="flex-1 overflow-y-auto p-margin h-full">
       <div className="max-w-7xl mx-auto">
+        <div className="flex flex-col gap-6 mb-xl">
+          <PageHeader
+            title="Ofertas"
+            help="Buscá, importá y filtrá ofertas. Las ordenamos con un puntaje según tu perfil de búsqueda."
+          />
+          <PrimerosPasos />
+        </div>
 
         {/* Filters Row */}
         <form
@@ -377,12 +395,40 @@ export function Offers() {
         ) : total === 0 && !hayFiltros ? (
           <div className="flex flex-col items-center justify-center text-outline-variant py-24 gap-2">
             <Inbox className="w-12 h-12" />
-            <p className="text-sm font-medium text-on-surface-variant">Todavía no cargaste ninguna oferta.</p>
+            <p className="text-sm font-medium text-on-surface-variant">Todavía no hay ofertas cargadas.</p>
+            <p className="text-sm text-on-surface-variant">Importá ofertas remotas o cargá una a mano para empezar.</p>
+            <div className="flex flex-wrap justify-center gap-3 mt-3">
+              <button
+                type="button"
+                onClick={handleImportar}
+                disabled={importing}
+                className="bg-primary text-on-primary text-sm font-medium px-5 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+              >
+                <Download className="w-4.5 h-4.5" />
+                Importar ofertas remotas
+              </button>
+              <button
+                type="button"
+                onClick={openCreateForm}
+                className="bg-surface-container-high text-on-surface text-sm font-medium px-5 py-2.5 rounded-lg border border-outline-variant hover:bg-surface-variant transition-all flex items-center gap-2 cursor-pointer"
+              >
+                <Plus className="w-4.5 h-4.5" />
+                Cargar una oferta
+              </button>
+            </div>
           </div>
         ) : total === 0 ? (
           <div className="flex flex-col items-center justify-center text-outline-variant py-24 gap-2">
             <Inbox className="w-12 h-12" />
             <p className="text-sm font-medium text-on-surface-variant">Ninguna oferta coincide con los filtros aplicados.</p>
+            <p className="text-sm text-on-surface-variant">Probá aflojar un filtro: bajá el puntaje mínimo o borrá la ubicación.</p>
+            <button
+              type="button"
+              onClick={handleLimpiarFiltros}
+              className="mt-3 bg-surface-container-high text-on-surface text-sm font-medium px-5 py-2.5 rounded-lg border border-outline-variant hover:bg-surface-variant transition-all cursor-pointer"
+            >
+              Quitar todos los filtros
+            </button>
           </div>
         ) : (
           <>

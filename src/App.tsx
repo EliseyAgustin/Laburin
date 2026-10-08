@@ -15,6 +15,7 @@ import { Tablero } from './pages/Tablero';
 import { Offers } from './pages/Offers';
 import { Analytics } from './pages/Analytics';
 import { Settings } from './pages/Settings';
+import { REDIRECCIONES_LEGACY, RUTAS } from './lib/rutas';
 
 export default function App() {
   return (
@@ -41,11 +42,16 @@ export default function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route path="/tablero" element={<Tablero />} />
-                <Route path="/ofertas" element={<Offers />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/configuracion" element={<Settings />} />
+                <Route path={RUTAS.postulaciones} element={<Tablero />} />
+                <Route path={RUTAS.ofertas} element={<Offers />} />
+                <Route path={RUTAS.progreso} element={<Analytics />} />
+                <Route path={RUTAS.perfil} element={<Settings />} />
               </Route>
+
+              {/* URLs anteriores: siguen llevando a la pantalla correcta (enlaces guardados, marcadores). */}
+              {Object.entries(REDIRECCIONES_LEGACY).map(([desde, hacia]) => (
+                <Route key={desde} path={desde} element={<Navigate to={hacia} replace />} />
+              ))}
 
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />

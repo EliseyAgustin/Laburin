@@ -28,7 +28,7 @@ export async function registrarPorUI(page: Page, cuenta?: Cuenta): Promise<Cuent
 
 export async function omitirOnboarding(page: Page) {
   await page.getByRole('button', { name: 'Omitir por ahora' }).click();
-  await expect(page).toHaveURL(/\/tablero$/);
+  await expect(page).toHaveURL(/\/mis-postulaciones$/);
 }
 
 // En mobile el menú lateral está cerrado: hay que abrirlo antes de usar la navegación o "Mi cuenta".
@@ -37,9 +37,9 @@ export async function abrirMenuSiHaceFalta(page: Page) {
   if (await abrir.isVisible()) await abrir.click();
 }
 
-export async function irA(page: Page, seccion: 'Ofertas' | 'Tablero' | 'Analytics' | 'Configuración') {
+export async function irA(page: Page, seccion: 'Ofertas' | 'Mis postulaciones' | 'Mi progreso' | 'Mi perfil de búsqueda') {
   await abrirMenuSiHaceFalta(page);
-  await page.getByRole('link', { name: seccion }).click();
+  await page.getByRole('link', { name: seccion, exact: true }).click();
 }
 
 export async function conApiDe(cuenta: Cuenta): Promise<Api> {

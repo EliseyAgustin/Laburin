@@ -25,7 +25,7 @@ test('umbral de inactividad: persiste, se valida y cambia cuándo aparece el rec
   const badge = page.getByText('Sin novedades hace 10 días');
 
   // --- El valor visible es el mismo que usa el motor (7) y se puede cambiar ---
-  await page.goto('/configuracion');
+  await page.goto('/mi-perfil');
   await expect(umbral).toHaveValue('7');
   await guardarUmbral('14');
   await expect.poll(diasEnBase).toBe(14);
@@ -42,22 +42,22 @@ test('umbral de inactividad: persiste, se valida y cambia cuándo aparece el rec
   expect(await diasEnBase()).toBe(14);
 
   // --- Con 14 días, una postulación de 10 días todavía no avisa ---
-  await page.goto('/tablero');
+  await page.goto('/mis-postulaciones');
   await expect(page.getByRole('heading', { name: 'QA Engineer', level: 4 })).toBeVisible();
   await expect(badge).toHaveCount(0);
 
   // --- Con 7 días, avisa ---
-  await page.goto('/configuracion');
+  await page.goto('/mi-perfil');
   await guardarUmbral('7');
   await expect.poll(diasEnBase).toBe(7);
-  await page.goto('/tablero');
+  await page.goto('/mis-postulaciones');
   await expect(badge).toBeVisible();
 
   // --- Política "solo hacia adelante": subir el umbral no borra el recordatorio ya generado ---
-  await page.goto('/configuracion');
+  await page.goto('/mi-perfil');
   await guardarUmbral('30');
   await expect.poll(diasEnBase).toBe(30);
-  await page.goto('/tablero');
+  await page.goto('/mis-postulaciones');
   await expect(page.getByRole('heading', { name: 'QA Engineer', level: 4 })).toBeVisible();
   await expect(badge).toBeVisible();
 });

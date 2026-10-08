@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { mensajeDeError } from '@/lib/errores';
 import { completarOnboarding, omitirOnboarding } from '@/services/onboarding';
+import { RUTAS } from '@/lib/rutas';
 import { useOnboarding } from '@/hooks/useOnboarding';
 import type { Modalidad } from '@/types/oferta';
 import type { Seniority } from '@/types/perfilUsuario';
@@ -50,7 +51,7 @@ export function OnboardingWizard() {
         seniority,
       });
       await refresh();
-      navigate('/tablero', { replace: true });
+      navigate(RUTAS.postulaciones, { replace: true });
     } catch (err) {
       setError(mensajeDeError(err, 'No se pudo guardar tu perfil.'));
       setSaving(false);
@@ -63,7 +64,7 @@ export function OnboardingWizard() {
     try {
       await omitirOnboarding();
       await refresh();
-      navigate('/tablero', { replace: true });
+      navigate(RUTAS.postulaciones, { replace: true });
     } catch (err) {
       setError(mensajeDeError(err, 'No se pudo omitir el onboarding.'));
       setSaving(false);

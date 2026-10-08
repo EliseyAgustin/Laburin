@@ -11,7 +11,7 @@ import {
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
-const RUTAS_PROTEGIDAS = ['/tablero', '/ofertas', '/analytics', '/configuracion', '/onboarding'];
+const RUTAS_PROTEGIDAS = ['/mis-postulaciones', '/ofertas', '/mi-progreso', '/mi-perfil', '/tablero', '/analytics', '/configuracion', '/onboarding'];
 
 test('rutas protegidas sin sesión redirigen a Login', async ({ page }) => {
   for (const ruta of RUTAS_PROTEGIDAS) {
@@ -77,7 +77,7 @@ test('Mi cuenta (nombre, tema, contraseña) y sesión (cerrar, reingresar, los d
   await expect(page.getByText(/Invalid login credentials/i)).toBeVisible();
   await campoPassword(page).fill(nuevaPassword);
   await page.getByRole('button', { name: 'Ingresar' }).click();
-  await expect(page).toHaveURL(/\/tablero$/);
+  await expect(page).toHaveURL(/\/mis-postulaciones$/);
 
   await page.goto('/ofertas');
   await expect(page.getByRole('heading', { name: 'Analista Funcional', level: 3 })).toBeVisible();

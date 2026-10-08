@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { generarDatosEjemplo } from '@/lib/datosEjemplo';
 import { calcularFortalezaPassword, type NivelFortalezaPassword } from '@/lib/passwordStrength';
+import { RUTAS } from '@/lib/rutas';
 import { cn, scrollFieldIntoView } from '@/lib/utils';
 import logoTexto from '@/assets/logo/laburin-logo-texto.svg';
 
@@ -40,7 +41,7 @@ export function Login() {
         return;
       }
 
-      navigate('/tablero', { replace: true });
+      navigate(RUTAS.postulaciones, { replace: true });
       return;
     }
 
@@ -87,7 +88,7 @@ export function Login() {
         <div className="flex flex-col items-center text-center">
           <img src={logoTexto} alt="Laburin" className="h-28 w-auto" />
           <p className="text-sm text-on-surface-variant mt-1">
-            {mode === 'login' ? 'Iniciá sesión para ver tu tablero.' : 'Creá tu cuenta para empezar.'}
+            {mode === 'login' ? 'Iniciá sesión para ver tus postulaciones.' : 'Creá tu cuenta para empezar.'}
           </p>
         </div>
 

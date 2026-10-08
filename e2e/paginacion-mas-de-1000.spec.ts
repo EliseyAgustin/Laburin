@@ -101,7 +101,7 @@ test.describe('más de 1000 ofertas', () => {
   });
 
   test('Analytics cuenta las 1100 ofertas y el score promedio es coherente', async ({ page }) => {
-    await page.goto('/analytics');
+    await page.goto('/mi-progreso');
     // La tarjeta KPI es el div más interno que contiene el título y el párrafo de detalle.
     const tarjeta = (titulo: string) =>
       page
@@ -112,11 +112,11 @@ test.describe('más de 1000 ofertas', () => {
 
     await expect(tarjeta('Ofertas cargadas')).toContainText(String(TOTAL));
     // 550 ofertas con 25 y 550 con 10 => promedio 17.5
-    await expect(tarjeta('Score promedio')).toContainText('17.5');
+    await expect(tarjeta('Puntaje promedio')).toContainText('17.5');
   });
 
   test('cambiar un peso recalcula los scores de todas las ofertas, también las pasadas la fila 1000', async ({ page, api }) => {
-    await page.goto('/configuracion');
+    await page.goto('/mi-perfil');
     const pesoReact = page.getByRole('spinbutton', { name: 'Peso de React' });
     await expect(pesoReact).toHaveValue('15');
     await pesoReact.fill('20');
@@ -138,10 +138,10 @@ test.describe('más de 1000 ofertas', () => {
     const { data } = await api.sb.from('ofertas').select('puntaje_scoring').eq('rol', 'Seed Role 1098').single();
     expect(Number(data?.puntaje_scoring)).toBe(30);
 
-    await page.goto('/analytics');
+    await page.goto('/mi-progreso');
     const tarjeta = page
       .locator('div')
-      .filter({ has: page.getByText('Score promedio', { exact: true }) })
+      .filter({ has: page.getByText('Puntaje promedio', { exact: true }) })
       .filter({ has: page.locator('p') })
       .last();
     await expect(tarjeta).toContainText('20.0'); // (550*30 + 550*10) / 1100

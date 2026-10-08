@@ -11,7 +11,7 @@ setup('sesión de la cuenta compartida', async ({ page }, testInfo) => {
 
   await iniciarSesionPorUI(page, cuenta);
   const entro = await page
-    .waitForURL(/\/(tablero|onboarding)$/, { timeout: 8_000 })
+    .waitForURL(/\/(mis-postulaciones|onboarding)$/, { timeout: 8_000 })
     .then(() => true)
     .catch(() => false);
 
@@ -25,8 +25,8 @@ setup('sesión de la cuenta compartida', async ({ page }, testInfo) => {
   const api = await crearApi(cuenta);
   await api.resetear();
 
-  await page.goto('/tablero');
-  await expect(page).toHaveURL(/\/tablero$/);
+  await page.goto('/mis-postulaciones');
+  await expect(page).toHaveURL(/\/mis-postulaciones$/);
   await expect(campoPassword(page)).toHaveCount(0);
   await page.context().storageState({ path: `e2e/.auth/${proyecto}.json` });
 });

@@ -36,14 +36,14 @@ test('alta de usuario: registro, onboarding de 4 pasos y tablero vacío', async 
   await page.getByRole('button', { name: 'Finalizar' }).click();
 
   // Tablero vacío: las 6 columnas, todas sin tarjetas.
-  await expect(page).toHaveURL(/\/tablero$/);
+  await expect(page).toHaveURL(/\/mis-postulaciones$/);
   for (const estado of ESTADOS) {
     await expect(page.getByRole('heading', { name: estado, level: 3, exact: true })).toBeVisible();
   }
   await expect(page.getByText('Sin tarjetas')).toHaveCount(6);
 
   // Los criterios de Configuración reflejan exactamente lo elegido.
-  await irA(page, 'Configuración');
+  await irA(page, 'Mi perfil de búsqueda');
   for (const tecnologia of ['React', 'TypeScript', 'Cypress', 'Remoto', 'Córdoba, Argentina']) {
     await expect(page.getByText(tecnologia, { exact: true })).toBeVisible();
   }

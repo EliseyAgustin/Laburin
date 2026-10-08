@@ -1,6 +1,6 @@
 # Laburin
 
-![Tablero Kanban de Laburin](docs/scripts/capturas/05-tablero.png)
+![Mis postulaciones (tablero Kanban) de Laburin](docs/scripts/capturas/05-tablero.png)
 
 Plataforma web para organizar y hacer seguimiento de una búsqueda laboral, con un motor de scoring configurable que puntúa cada oferta según las preferencias de cada usuario. Es el proyecto de la Práctica Profesional Supervisada de la Tecnicatura Universitaria en Tecnologías Web (Universidad Nacional del Oeste).
 
@@ -10,10 +10,11 @@ Plataforma web para organizar y hacer seguimiento de una búsqueda laboral, con 
 
 - **Ofertas:** carga manual o importación desde Remotive y Arbeitnow (con deduplicación). Listado paginado con filtros por fuente, ubicación y puntaje mínimo, y borrado masivo.
 - **Scoring configurable:** criterios de stack, modalidad y ubicación con peso propio; al cambiarlos se recalcula el puntaje de todas las ofertas.
-- **Tablero Kanban:** seis estados, con arrastrar y soltar en escritorio y un selector "Mover a..." en mobile. Guarda el historial de cambios de estado.
+- **Mis postulaciones (tablero Kanban):** seis estados, con arrastrar y soltar en escritorio y un selector "Mover a..." en mobile. Guarda el historial de cambios de estado.
+- **Mi perfil de búsqueda:** qué buscás (modalidad y ubicación), tus tecnologías con su peso y el aviso de seguimiento. Las URLs anteriores (`/tablero`, `/analytics`, `/configuracion`) redirigen a `/mis-postulaciones`, `/mi-progreso` y `/mi-perfil`.
 - **Ficha de postulación:** línea de tiempo de interacciones (mail, llamada, entrevista, nota).
 - **Recordatorios por inactividad:** aviso cuando una postulación abierta lleva N días sin novedades; N lo elige cada usuario (de 1 a 90, 7 por defecto).
-- **Panel de Métricas:** embudo, tasa de respuesta, score promedio y actividad reciente.
+- **Mi progreso (métricas):** embudo, tasa de respuesta, puntaje promedio y actividad reciente.
 - **Cuenta:** registro, onboarding de 4 pasos y "Mi cuenta" (nombre, contraseña, tema claro/oscuro). Los datos de cada usuario quedan aislados con RLS.
 
 ## Stack

@@ -10,7 +10,7 @@ test('cambiar un peso recalcula el score de las ofertas y agregar un criterio lo
     return Number(data?.puntaje_scoring);
   };
 
-  await page.goto('/configuracion');
+  await page.goto('/mi-perfil');
 
   // --- Cambiar el peso de React: 15 -> 30 ---
   const pesoReact = page.getByRole('spinbutton', { name: 'Peso de React' });
@@ -26,15 +26,15 @@ test('cambiar un peso recalcula el score de las ofertas y agregar un criterio lo
   await expect(page.getByText('40', { exact: true })).toBeVisible();
 
   // --- Agregar un criterio nuevo: Docker = 20 ---
-  await page.goto('/configuracion');
-  await page.getByPlaceholder('Nueva tecnología...').fill('Docker');
+  await page.goto('/mi-perfil');
+  await page.getByPlaceholder('Ej: React, Python, SQL').fill('Docker');
   await page.getByPlaceholder('Peso').fill('20');
   await page.getByRole('button', { name: 'Agregar tecnología' }).click();
   await expect(page.getByText('Docker', { exact: true })).toBeVisible();
   await expect.poll(() => scoreDe('Backend Developer')).toBe(30); // 20 (Docker) + 10 (remoto)
 
   // Un duplicado casi idéntico ("docker " en minúscula y con espacio) no crea otro criterio.
-  await page.getByPlaceholder('Nueva tecnología...').fill('  docker ');
+  await page.getByPlaceholder('Ej: React, Python, SQL').fill('  docker ');
   await page.getByRole('button', { name: 'Agregar tecnología' }).click();
   await expect(page.getByText('Ya tenés un criterio para "docker".')).toBeVisible();
   const { count } = await api.sb

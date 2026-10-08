@@ -12,6 +12,7 @@ import {
   LabelList,
 } from 'recharts';
 import { Activity, BellRing, Briefcase, Gauge, Hourglass, Inbox, Target, type LucideIcon } from 'lucide-react';
+import { PageHeader } from '@/components/PageHeader';
 import { mensajeDeError } from '@/lib/errores';
 import { useTheme } from '@/hooks/useTheme';
 import { calcularMetricas, cargarDatosMetricas } from '@/services/metricas';
@@ -132,7 +133,7 @@ export function Analytics() {
   return (
     <div className="flex-1 overflow-y-auto p-margin h-full">
       <div className="max-w-7xl mx-auto space-y-6">
-        <h2 className="text-4xl font-heading font-bold tracking-tight text-on-background mb-8">Analytics</h2>
+        <PageHeader title="Mi progreso" help="Cómo te está yendo en tu búsqueda: ofertas, postulaciones y respuestas." />
 
         {error && <div className="p-4 bg-error-container text-on-error-container rounded-lg text-sm">{error}</div>}
         {advertencias.map((advertencia) => (
@@ -170,7 +171,7 @@ function Contenido({
     { name: 'Alto', value: bandas.alto, color: colors.bandas.alto },
     { name: 'Medio', value: bandas.medio, color: colors.bandas.medio },
     { name: 'Bajo', value: bandas.bajo, color: colors.bandas.bajo },
-    { name: 'Sin score', value: bandas.sinScore, color: colors.bandas.sinScore },
+    { name: 'Sin puntaje', value: bandas.sinScore, color: colors.bandas.sinScore },
   ];
   const semanasData = m.semanas.map((s) => ({
     semana: s.inicio.toLocaleDateString('es-AR', { day: 'numeric', month: 'numeric' }),
@@ -207,7 +208,7 @@ function Contenido({
           detail={`${m.ofertas.ultimos7} en los últimos 7 días (${variacionOfertas >= 0 ? '+' : ''}${variacionOfertas} vs. los 7 previos)`}
         />
         <KpiCard
-          label="Score promedio"
+          label="Puntaje promedio"
           icon={Gauge}
           value={m.score.promedio === null ? '—' : m.score.promedio.toFixed(1)}
           detail={
@@ -284,7 +285,7 @@ function Contenido({
           )}
         </ChartCard>
 
-        <ChartCard title="Distribución de score" subtitle="Franjas sobre el máximo posible: Alto ≥75% · Medio 50–75% · Bajo <50%">
+        <ChartCard title="Distribución de puntajes" subtitle="Franjas sobre el máximo posible: Alto ≥75% · Medio 50–75% · Bajo <50%">
           {bandasData === null ? (
             <SinDatos mensaje="No hay criterios activos. Activá al menos uno en Configuración para ver las franjas." />
           ) : m.ofertas.total === 0 ? (

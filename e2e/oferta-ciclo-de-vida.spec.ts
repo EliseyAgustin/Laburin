@@ -45,7 +45,7 @@ test('ciclo de vida de una oferta: crear, score, postular, mover por las 6 colum
   await expect(page.getByRole('button', { name: 'Por aplicar' })).toBeVisible();
 
   // --- Tablero: moverla por las 6 columnas ---
-  await irA(page, 'Tablero');
+  await irA(page, 'Mis postulaciones');
   const tarjeta = page.getByRole('heading', { name: ROL, level: 4 });
   await expect(tarjeta).toBeVisible();
   // HALLAZGO H-1 (ver tanda 5): un refetch inicial tardío pisa el primer movimiento. Acá se espera a que

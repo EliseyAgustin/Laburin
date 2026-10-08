@@ -1,5 +1,9 @@
 import { useEffect, useState, type DragEvent } from 'react';
 import { AlertTriangle, Building2, Clock, Inbox, Trash2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { PageHeader } from '@/components/PageHeader';
+import { PrimerosPasos } from '@/components/PrimerosPasos';
+import { RUTAS } from '@/lib/rutas';
 import { mensajeDeError } from '@/lib/errores';
 import { ApplicationDetailPanel } from '@/components/ApplicationDetailPanel';
 import { useAuth } from '@/hooks/useAuth';
@@ -147,6 +151,27 @@ export function Tablero() {
         </div>
       )}
 
+      <div className="shrink-0 flex flex-col gap-4 sticky left-0 w-[calc(100vw-2rem)] md:w-[calc(100vw-240px-4rem)]">
+        <PageHeader
+          title="Mis postulaciones"
+          help="Seguí en qué etapa está cada postulación. Arrastrá las tarjetas entre columnas, o usá el selector en el celular."
+        />
+        <PrimerosPasos />
+        {postulaciones.length === 0 && (
+          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
+            <p className="text-sm text-on-surface-variant">
+              Todavía no te postulaste a ninguna oferta. Elegí una en Ofertas y apretá «Postularme»: va a aparecer acá.
+            </p>
+            <Link
+              to={RUTAS.ofertas}
+              className="bg-primary text-on-primary text-sm font-medium px-5 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-all"
+            >
+              Ir a Ofertas
+            </Link>
+          </div>
+        )}
+      </div>
+
       <div className="flex gap-lg flex-1 min-h-0 pb-sm w-max">
         {ESTADOS_POSTULACION.map(({ estado, label }) => {
           const items = postulaciones.filter((p) => p.estado === estado);
@@ -230,7 +255,7 @@ export function Tablero() {
                         <div className="flex items-center gap-1">
                           <span className="w-2 h-2 rounded-full bg-primary"></span>
                           <span className="text-xs font-semibold text-on-surface-variant">
-                            Score: {postulacion.oferta.puntaje_scoring !== null ? Math.round(postulacion.oferta.puntaje_scoring) : '—'}
+                            Puntaje: {postulacion.oferta.puntaje_scoring !== null ? Math.round(postulacion.oferta.puntaje_scoring) : '—'}
                           </span>
                         </div>
                         {postulacion.fecha_postulacion && (

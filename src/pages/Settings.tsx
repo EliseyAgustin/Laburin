@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Timer, Terminal, Briefcase, MapPin, Plus, Trash2, ToggleLeft, ToggleRight } from 'lucide-react';
+import { PageHeader } from '@/components/PageHeader';
 import { mensajeDeError } from '@/lib/errores';
 import { normalizarTag } from '@/lib/tags';
 import { cn } from '@/lib/utils';
@@ -287,13 +288,10 @@ export function Settings() {
     <div className="flex-1 overflow-y-auto p-margin min-h-full">
       <div className="max-w-7xl mx-auto flex flex-col gap-6 pb-6">
         {/* Page Header */}
-        <div className="pb-2 border-b border-outline-variant">
-          <h1 className="text-4xl font-heading font-bold tracking-tight text-on-surface">Motor de Scoring</h1>
-          <p className="text-base text-on-surface-variant mt-1">
-            Ajusta los pesos y criterios para la evaluación automática de candidatos. Los cambios se guardan y
-            recalculan al instante.
-          </p>
-        </div>
+        <PageHeader
+          title="Mi perfil de búsqueda"
+          help="Contanos qué buscás. Con estos datos calculamos el puntaje de cada oferta. Los cambios se guardan solos."
+        />
 
         {loadError && (
           <div className="p-4 bg-error-container text-on-error-container rounded-lg text-sm">{loadError}</div>
@@ -302,68 +300,228 @@ export function Settings() {
           <div className="p-4 bg-error-container text-on-error-container rounded-lg text-sm">{actionError}</div>
         )}
 
-        {/* Global Settings Section */}
-        <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-10 h-10 bg-surface-container rounded-lg flex items-center justify-center">
-              <Timer className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="text-xl font-heading font-semibold text-on-surface">Umbral de Inactividad</h3>
-              <p className="text-sm text-on-surface-variant">
-                Días sin novedades en una postulación antes de avisarte con un recordatorio.
-              </p>
-            </div>
+        <section className="flex flex-col gap-3">
+          <div>
+            <h2 className="text-2xl font-heading font-semibold text-on-surface">¿Qué estoy buscando?</h2>
+            <p className="text-sm text-on-surface-variant mt-0.5">Elegí cómo y dónde querés trabajar. Las ofertas que coinciden suman puntos.</p>
           </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              inputMode="numeric"
-              min={DIAS_INACTIVIDAD_MIN}
-              max={DIAS_INACTIVIDAD_MAX}
-              aria-label="Umbral de inactividad en días"
-              aria-invalid={diasError !== null}
-              value={diasDraft ?? String(diasGuardados)}
-              disabled={guardandoDias}
-              onChange={(e) => setDiasDraft(e.target.value)}
-              onBlur={handleDiasBlur}
-              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
-              className="w-20 text-center text-xl font-semibold text-on-surface bg-surface border border-outline-variant rounded-lg px-2 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-            />
-            <span className="text-sm font-medium text-on-surface-variant">días</span>
-          </div>
-          {diasError && (
-            <p role="alert" className="basis-full text-sm text-error">
-              {diasError}
-            </p>
-          )}
-        </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* MODALIDAD */}
+              <section className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm">
+                <div className="p-4 border-b border-outline-variant bg-surface rounded-t-xl flex items-center gap-2">
+                  <Briefcase className="w-6 h-6 text-tertiary" />
+                  <h3 className="text-xl font-heading font-semibold text-on-surface">Modalidad</h3>
+                </div>
+                <div className="p-4 flex flex-col gap-2">
+                  {modalidadCriterios.length === 0 && (
+                    <p className="text-sm text-on-surface-variant text-center py-2">
+                      Todavía no elegiste ninguna modalidad.
+                    </p>
+                  )}
 
-        {/* Bento Grid Layout for Scoring Criteria */}
-        <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                  {modalidadCriterios.map((c) => (
+                    <div
+                      key={c.id}
+                      className={cn(
+                        'flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg hover:bg-surface-container-low transition-colors group',
+                        !c.activo && 'opacity-50'
+                      )}
+                    >
+                      <div className="flex items-center gap-2 text-sm font-medium text-on-surface">
+                        {MODALIDAD_LABEL[c.valor_comparacion as Modalidad] ?? c.valor_comparacion}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 bg-surface border border-outline-variant rounded-md px-2 py-1 focus-within:border-primary">
+                          <input
+                            type="number"
+                            min={PESO_MINIMO}
+                            max={PESO_MAXIMO}
+                            aria-label={`Peso de ${etiquetaCriterio(c)}`}
+                        value={valorPesoMostrado(c)}
+                            disabled={savingIds.has(c.id)}
+                            onChange={(e) => handlePesoChange(c.id, e.target.value)}
+                            onFocus={(e) => e.target.select()}
+                            onBlur={() => handlePesoBlur(c)}
+                            className="w-10 text-center text-xs font-medium text-primary bg-transparent border-none p-0 outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                          <span className="text-outline text-xs">pts</span>
+                        </div>
+                        <ToggleActivo
+                          activo={c.activo}
+                          nombre={etiquetaCriterio(c)}
+                          disabled={savingIds.has(c.id)}
+                          onClick={() => handleToggleActivo(c)}
+                        />
+                        <button
+                          type="button"
+                          disabled={savingIds.has(c.id)}
+                          onClick={() => handleDelete(c)}
+                        aria-label={`Eliminar criterio ${etiquetaCriterio(c)}`}
+                          className="text-error hover:bg-error-container p-2.5 md:p-1 -m-2.5 md:-m-1 rounded-md transition-colors cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+
+                  {modalidadesDisponibles.length > 0 && (
+                    <form onSubmit={handleAddModalidad} className="flex items-center gap-2 pt-2 border-t border-outline-variant mt-1">
+                      <select
+                        value={modalidadDraft}
+                        aria-label="Modalidad del nuevo criterio"
+                        onChange={(e) => setModalidadDraft(e.target.value as Modalidad | '')}
+                        className="flex-1 bg-surface-container-lowest border border-outline-variant rounded-lg px-2 py-2 text-sm focus:border-primary focus:outline-none cursor-pointer"
+                      >
+                        <option value="">Elegir modalidad…</option>
+                        {modalidadesDisponibles.map((m) => (
+                          <option key={m.value} value={m.value}>
+                            {m.label}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="number"
+                        min={PESO_MINIMO}
+                        max={PESO_MAXIMO}
+                        value={modalidadPesoDraft}
+                        aria-label="Peso de la nueva modalidad"
+                        onChange={(e) => setModalidadPesoDraft(e.target.value)}
+                        onFocus={(e) => e.target.select()}
+                        placeholder="Puntos"
+                        className="w-16 bg-surface-container-lowest border border-outline-variant rounded-lg px-2 py-2 text-sm focus:border-primary focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      />
+                      <button
+                        type="submit"
+                        aria-label="Agregar modalidad"
+                        disabled={agregando}
+                        className="bg-surface-container-low text-primary border border-outline-variant rounded-lg px-2 py-2 hover:bg-surface-container transition-colors cursor-pointer disabled:opacity-50"
+                      >
+                        <Plus className="w-5 h-5" />
+                      </button>
+                    </form>
+                  )}
+                </div>
+              </section>
+              {/* UBICACIÓN */}
+              <section className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex-1 flex flex-col">
+                <div className="p-4 border-b border-outline-variant bg-surface rounded-t-xl flex items-center gap-2">
+                  <MapPin className="w-6 h-6 text-secondary" />
+                  <h3 className="text-xl font-heading font-semibold text-on-surface">Ubicación</h3>
+                </div>
+                <div className="p-4 flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-2">
+                  {ubicacionCriterios.length === 0 && (
+                    <p className="text-sm text-on-surface-variant text-center py-2">
+                      Todavía no agregaste ninguna ubicación.
+                    </p>
+                  )}
+
+                  {ubicacionCriterios.map((c) => (
+                    <div
+                      key={c.id}
+                      className={cn(
+                        'flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg border border-outline-variant bg-surface-bright group',
+                        !c.activo && 'opacity-50'
+                      )}
+                    >
+                      <span className="text-sm text-on-surface">{c.valor_comparacion}</span>
+                      <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 bg-surface border border-outline-variant rounded-md px-2 py-1">
+                          <span className="text-outline text-xs">+</span>
+                          <input
+                            type="number"
+                            min={PESO_MINIMO}
+                            max={PESO_MAXIMO}
+                            aria-label={`Peso de ${etiquetaCriterio(c)}`}
+                        value={valorPesoMostrado(c)}
+                            disabled={savingIds.has(c.id)}
+                            onChange={(e) => handlePesoChange(c.id, e.target.value)}
+                            onFocus={(e) => e.target.select()}
+                            onBlur={() => handlePesoBlur(c)}
+                            className="w-10 text-center text-xs font-medium text-on-secondary-container bg-transparent border-none p-0 outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                          />
+                          <span className="text-outline text-xs">pts</span>
+                        </div>
+                        <ToggleActivo
+                          activo={c.activo}
+                          nombre={etiquetaCriterio(c)}
+                          disabled={savingIds.has(c.id)}
+                          onClick={() => handleToggleActivo(c)}
+                        />
+                        <button
+                          type="button"
+                          disabled={savingIds.has(c.id)}
+                          onClick={() => handleDelete(c)}
+                        aria-label={`Eliminar criterio ${etiquetaCriterio(c)}`}
+                          className="text-error hover:bg-error-container p-2.5 md:p-1 -m-2.5 md:-m-1 rounded-md transition-colors cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-50"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <form onSubmit={handleAddUbicacion} className="p-2 border-t border-outline-variant bg-surface rounded-b-xl flex gap-2">
+                  <input
+                    type="text"
+                    maxLength={100}
+                    value={ubicacionDraft}
+                    onChange={(e) => setUbicacionDraft(e.target.value)}
+                    aria-label="Nueva ubicación"
+                    placeholder="Ej: Buenos Aires, Argentina"
+                    className="flex-1 bg-surface-container-lowest border border-outline-variant rounded-lg px-2 py-2 text-sm focus:border-primary focus:outline-none"
+                  />
+                  <input
+                    type="number"
+                    min={PESO_MINIMO}
+                    max={PESO_MAXIMO}
+                    value={ubicacionPesoDraft}
+                    aria-label="Peso de la nueva ubicación"
+                    onChange={(e) => setUbicacionPesoDraft(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    placeholder="Puntos"
+                    className="w-16 bg-surface-container-lowest border border-outline-variant rounded-lg px-2 py-2 text-sm focus:border-primary focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                  <button
+                    type="submit"
+                    aria-label="Agregar ubicación"
+                    disabled={agregando}
+                    className="bg-surface-container-low text-primary border border-outline-variant rounded-lg px-2 py-2 hover:bg-surface-container transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                </form>
+              </section>
+          </div>
+        </section>
+        <section className="flex flex-col gap-3">
+          <div>
+            <h2 className="text-2xl font-heading font-semibold text-on-surface">Mis tecnologías y cuánto pesan</h2>
+            <p className="text-sm text-on-surface-variant mt-0.5">Las tecnologías que te interesan. Cuanto más peso tiene una, más arriba aparecen las ofertas que la mencionan.</p>
+          </div>
           {/* STACK: Keywords & Weights */}
-          <section className="xl:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex flex-col h-125">
+          <section className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex flex-col h-125">
             <div className="p-6 border-b border-outline-variant flex justify-between items-center bg-surface rounded-t-xl">
               <div className="flex items-center gap-2">
                 <Terminal className="w-6 h-6 text-primary" />
-                <h2 className="text-xl font-heading font-semibold text-on-surface">Stack Tecnológico</h2>
+                <h3 className="text-xl font-heading font-semibold text-on-surface">Tecnologías</h3>
               </div>
               <span className="bg-primary-container text-on-primary-container text-[11px] font-semibold px-2 py-1 rounded-full">
-                Alto Impacto
+                Pesa mucho en el puntaje
               </span>
             </div>
 
             <div className="flex-1 p-6 overflow-y-auto custom-scrollbar flex flex-col gap-2">
               <div className="grid grid-cols-12 gap-2 px-4 pb-2 border-b border-outline-variant text-xs font-medium text-on-surface-variant">
-                <div className="col-span-6">Keyword / Tecnología</div>
-                <div className="col-span-3 text-center">Peso (Pts)</div>
+                <div className="col-span-6">Tecnología</div>
+                <div className="col-span-3 text-center">Peso (puntos)</div>
                 <div className="col-span-1 text-center">Activo</div>
                 <div className="col-span-2"></div>
               </div>
 
               {stackCriterios.length === 0 && (
                 <p className="text-sm text-on-surface-variant text-center py-6">
-                  Todavía no agregaste criterios de stack.
+                  Todavía no agregaste tecnologías. Escribí una abajo y apretá «+» para sumarla.
                 </p>
               )}
 
@@ -426,7 +584,7 @@ export function Settings() {
                   value={stackDraft}
                   onChange={(e) => setStackDraft(e.target.value)}
                   aria-label="Nueva tecnología"
-                  placeholder="Nueva tecnología..."
+                  placeholder="Ej: React, Python, SQL"
                   className="flex-1 bg-surface-container-lowest border border-outline-variant rounded-lg px-4 py-2 text-sm focus:border-primary focus:ring-1 focus:ring-primary outline-none"
                 />
                 <input
@@ -451,198 +609,50 @@ export function Settings() {
               </div>
             </form>
           </section>
-
-          {/* Column for Modalidad & Ubicación */}
-          <div className="xl:col-span-4 flex flex-col gap-6">
-            {/* MODALIDAD */}
-            <section className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm">
-              <div className="p-4 border-b border-outline-variant bg-surface rounded-t-xl flex items-center gap-2">
-                <Briefcase className="w-6 h-6 text-tertiary" />
-                <h2 className="text-xl font-heading font-semibold text-on-surface">Modalidad</h2>
-              </div>
-              <div className="p-4 flex flex-col gap-2">
-                {modalidadCriterios.length === 0 && (
-                  <p className="text-sm text-on-surface-variant text-center py-2">
-                    Todavía no agregaste criterios de modalidad.
-                  </p>
-                )}
-
-                {modalidadCriterios.map((c) => (
-                  <div
-                    key={c.id}
-                    className={cn(
-                      'flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg hover:bg-surface-container-low transition-colors group',
-                      !c.activo && 'opacity-50'
-                    )}
-                  >
-                    <div className="flex items-center gap-2 text-sm font-medium text-on-surface">
-                      {MODALIDAD_LABEL[c.valor_comparacion as Modalidad] ?? c.valor_comparacion}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="flex items-center gap-1 bg-surface border border-outline-variant rounded-md px-2 py-1 focus-within:border-primary">
-                        <input
-                          type="number"
-                          min={PESO_MINIMO}
-                          max={PESO_MAXIMO}
-                          aria-label={`Peso de ${etiquetaCriterio(c)}`}
-                      value={valorPesoMostrado(c)}
-                          disabled={savingIds.has(c.id)}
-                          onChange={(e) => handlePesoChange(c.id, e.target.value)}
-                          onFocus={(e) => e.target.select()}
-                          onBlur={() => handlePesoBlur(c)}
-                          className="w-10 text-center text-xs font-medium text-primary bg-transparent border-none p-0 outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        />
-                        <span className="text-outline text-xs">pts</span>
-                      </div>
-                      <ToggleActivo
-                        activo={c.activo}
-                        nombre={etiquetaCriterio(c)}
-                        disabled={savingIds.has(c.id)}
-                        onClick={() => handleToggleActivo(c)}
-                      />
-                      <button
-                        type="button"
-                        disabled={savingIds.has(c.id)}
-                        onClick={() => handleDelete(c)}
-                      aria-label={`Eliminar criterio ${etiquetaCriterio(c)}`}
-                        className="text-error hover:bg-error-container p-2.5 md:p-1 -m-2.5 md:-m-1 rounded-md transition-colors cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                {modalidadesDisponibles.length > 0 && (
-                  <form onSubmit={handleAddModalidad} className="flex items-center gap-2 pt-2 border-t border-outline-variant mt-1">
-                    <select
-                      value={modalidadDraft}
-                      aria-label="Modalidad del nuevo criterio"
-                      onChange={(e) => setModalidadDraft(e.target.value as Modalidad | '')}
-                      className="flex-1 bg-surface-container-lowest border border-outline-variant rounded-lg px-2 py-2 text-sm focus:border-primary focus:outline-none cursor-pointer"
-                    >
-                      <option value="">Elegir modalidad…</option>
-                      {modalidadesDisponibles.map((m) => (
-                        <option key={m.value} value={m.value}>
-                          {m.label}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="number"
-                      min={PESO_MINIMO}
-                      max={PESO_MAXIMO}
-                      value={modalidadPesoDraft}
-                      aria-label="Peso de la nueva modalidad"
-                      onChange={(e) => setModalidadPesoDraft(e.target.value)}
-                      onFocus={(e) => e.target.select()}
-                      placeholder="Pts"
-                      className="w-16 bg-surface-container-lowest border border-outline-variant rounded-lg px-2 py-2 text-sm focus:border-primary focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    />
-                    <button
-                      type="submit"
-                      aria-label="Agregar modalidad"
-                      disabled={agregando}
-                      className="bg-surface-container-low text-primary border border-outline-variant rounded-lg px-2 py-2 hover:bg-surface-container transition-colors cursor-pointer disabled:opacity-50"
-                    >
-                      <Plus className="w-5 h-5" />
-                    </button>
-                  </form>
-                )}
-              </div>
-            </section>
-
-            {/* UBICACIÓN */}
-            <section className="bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm flex-1 flex flex-col">
-              <div className="p-4 border-b border-outline-variant bg-surface rounded-t-xl flex items-center gap-2">
-                <MapPin className="w-6 h-6 text-secondary" />
-                <h2 className="text-xl font-heading font-semibold text-on-surface">Ubicación</h2>
-              </div>
-              <div className="p-4 flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-2">
-                {ubicacionCriterios.length === 0 && (
-                  <p className="text-sm text-on-surface-variant text-center py-2">
-                    Todavía no agregaste criterios de ubicación.
-                  </p>
-                )}
-
-                {ubicacionCriterios.map((c) => (
-                  <div
-                    key={c.id}
-                    className={cn(
-                      'flex flex-wrap items-center justify-between gap-2 p-2 rounded-lg border border-outline-variant bg-surface-bright group',
-                      !c.activo && 'opacity-50'
-                    )}
-                  >
-                    <span className="text-sm text-on-surface">{c.valor_comparacion}</span>
-                    <div className="flex items-center gap-1">
-                      <div className="flex items-center gap-1 bg-surface border border-outline-variant rounded-md px-2 py-1">
-                        <span className="text-outline text-xs">+</span>
-                        <input
-                          type="number"
-                          min={PESO_MINIMO}
-                          max={PESO_MAXIMO}
-                          aria-label={`Peso de ${etiquetaCriterio(c)}`}
-                      value={valorPesoMostrado(c)}
-                          disabled={savingIds.has(c.id)}
-                          onChange={(e) => handlePesoChange(c.id, e.target.value)}
-                          onFocus={(e) => e.target.select()}
-                          onBlur={() => handlePesoBlur(c)}
-                          className="w-10 text-center text-xs font-medium text-on-secondary-container bg-transparent border-none p-0 outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                        />
-                        <span className="text-outline text-xs">pts</span>
-                      </div>
-                      <ToggleActivo
-                        activo={c.activo}
-                        nombre={etiquetaCriterio(c)}
-                        disabled={savingIds.has(c.id)}
-                        onClick={() => handleToggleActivo(c)}
-                      />
-                      <button
-                        type="button"
-                        disabled={savingIds.has(c.id)}
-                        onClick={() => handleDelete(c)}
-                      aria-label={`Eliminar criterio ${etiquetaCriterio(c)}`}
-                        className="text-error hover:bg-error-container p-2.5 md:p-1 -m-2.5 md:-m-1 rounded-md transition-colors cursor-pointer opacity-100 md:opacity-0 md:group-hover:opacity-100 disabled:opacity-50"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <form onSubmit={handleAddUbicacion} className="p-2 border-t border-outline-variant bg-surface rounded-b-xl flex gap-2">
-                <input
-                  type="text"
-                  maxLength={100}
-                  value={ubicacionDraft}
-                  onChange={(e) => setUbicacionDraft(e.target.value)}
-                  aria-label="Nueva ubicación"
-                  placeholder="Ej: Zona Norte"
-                  className="flex-1 bg-surface-container-lowest border border-outline-variant rounded-lg px-2 py-2 text-sm focus:border-primary focus:outline-none"
-                />
-                <input
-                  type="number"
-                  min={PESO_MINIMO}
-                  max={PESO_MAXIMO}
-                  value={ubicacionPesoDraft}
-                  aria-label="Peso de la nueva ubicación"
-                  onChange={(e) => setUbicacionPesoDraft(e.target.value)}
-                  onFocus={(e) => e.target.select()}
-                  placeholder="Pts"
-                  className="w-16 bg-surface-container-lowest border border-outline-variant rounded-lg px-2 py-2 text-sm focus:border-primary focus:outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                />
-                <button
-                  type="submit"
-                  aria-label="Agregar ubicación"
-                  disabled={agregando}
-                  className="bg-surface-container-low text-primary border border-outline-variant rounded-lg px-2 py-2 hover:bg-surface-container transition-colors cursor-pointer disabled:opacity-50"
-                >
-                  <Plus className="w-5 h-5" />
-                </button>
-              </form>
-            </section>
+        </section>
+        <section className="flex flex-col gap-3">
+          <div>
+            <h2 className="text-2xl font-heading font-semibold text-on-surface">Avisos de seguimiento</h2>
+            <p className="text-sm text-on-surface-variant mt-0.5">Cuándo querés que te recordemos una postulación sin novedades.</p>
           </div>
+        {/* Global Settings Section */}
+        <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-6 shadow-sm flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-surface-container rounded-lg flex items-center justify-center">
+              <Timer className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="text-xl font-heading font-semibold text-on-surface">Recordatorio por falta de novedades</h3>
+              <p className="text-sm text-on-surface-variant">
+                Días sin novedades en una postulación antes de avisarte con un recordatorio.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              inputMode="numeric"
+              min={DIAS_INACTIVIDAD_MIN}
+              max={DIAS_INACTIVIDAD_MAX}
+              aria-label="Umbral de inactividad en días"
+              aria-invalid={diasError !== null}
+              value={diasDraft ?? String(diasGuardados)}
+              disabled={guardandoDias}
+              onChange={(e) => setDiasDraft(e.target.value)}
+              onBlur={handleDiasBlur}
+              onKeyDown={(e) => e.key === 'Enter' && e.currentTarget.blur()}
+              className="w-20 text-center text-xl font-semibold text-on-surface bg-surface border border-outline-variant rounded-lg px-2 py-2 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <span className="text-sm font-medium text-on-surface-variant">días</span>
+          </div>
+          {diasError && (
+            <p role="alert" className="basis-full text-sm text-error">
+              {diasError}
+            </p>
+          )}
         </div>
+
+        </section>
       </div>
     </div>
   );

@@ -113,3 +113,9 @@ export function listarHistorialEstados(): Promise<HistorialEstado[]> {
     supabase.from('postulacion_historial_estados').select('*').order('id').range(desde, hasta)
   );
 }
+
+export async function contarMisPostulaciones(): Promise<number> {
+  const { count, error } = await supabase.from('postulaciones').select('id', { count: 'exact', head: true });
+  if (error) throw error;
+  return count ?? 0;
+}

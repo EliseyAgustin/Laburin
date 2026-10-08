@@ -236,7 +236,7 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
             <div className="grid grid-cols-2 gap-4 p-4 bg-surface border border-outline-variant rounded-lg">
               <div>
                 <div className="text-[11px] font-semibold text-on-surface-variant uppercase tracking-wider mb-1">
-                  Score
+                  Puntaje
                 </div>
                 <div
                   className={cn(

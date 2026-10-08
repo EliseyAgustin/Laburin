@@ -12,14 +12,6 @@ export function AppLayout() {
     setMobileNavOpen(false);
   }, [location.pathname]);
 
-  const titulosPorRuta: Record<string, string> = {
-    '/ofertas': 'Explorar Ofertas',
-    '/tablero': 'Tablero',
-    '/analytics': 'Analytics',
-    '/configuracion': 'Configuración',
-  };
-  const topbarTitle = titulosPorRuta[location.pathname];
-
   return (
     <div className="flex h-screen overflow-hidden bg-background">
       {/*
@@ -37,7 +29,7 @@ export function AppLayout() {
 
       <Sidebar open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} />
       <div className="flex-1 flex flex-col w-full md:ml-60 md:w-[calc(100%-240px)] h-screen overflow-hidden relative">
-        <Topbar title={topbarTitle} onMenuClick={() => setMobileNavOpen(true)} />
+        <Topbar onMenuClick={() => setMobileNavOpen(true)} />
         <main className="flex-1 overflow-auto pt-16 h-full">
           <Outlet />
         </main>
