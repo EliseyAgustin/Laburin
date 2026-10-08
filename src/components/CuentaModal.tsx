@@ -3,15 +3,9 @@ import { X, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { supabase } from '@/lib/supabase';
-import { mensajeDeError } from '@/lib/errores';
-import { calcularFortalezaPassword, type NivelFortalezaPassword } from '@/lib/passwordStrength';
-import { cn } from '@/lib/utils';
-
-const ESTILO_NIVEL: Record<NivelFortalezaPassword, { label: string; barra: string; texto: string; barras: number }> = {
-  baja: { label: 'Débil', barra: 'bg-error', texto: 'text-error', barras: 1 },
-  media: { label: 'Media', barra: 'bg-warning', texto: 'text-warning', barras: 2 },
-  fuerte: { label: 'Fuerte', barra: 'bg-success', texto: 'text-success', barras: 3 },
-};
+import { traducirErrorAuth } from '@/lib/authErrores';
+import { validarConfirmacion, validarPasswordNueva } from '@/lib/validacionAuth';
+import { MedidorPassword } from '@/components/auth/MedidorPassword';
 
 function iniciales(nombre: string, email: string): string {
   const base = nombre.trim() || email;
@@ -41,8 +35,6 @@ export function CuentaModal({ onClose }: CuentaModalProps) {
   const [errorPassword, setErrorPassword] = useState<string | null>(null);
   const [okPassword, setOkPassword] = useState(false);
 
-  const fortaleza = passwordNueva ? calcularFortalezaPassword(passwordNueva) : null;
-
   async function handleGuardarNombre(e: FormEvent) {
     e.preventDefault();
     setErrorNombre(null);
@@ -53,7 +45,7 @@ export function CuentaModal({ onClose }: CuentaModalProps) {
       if (error) throw error;
       setOkNombre(true);
     } catch (err) {
-      setErrorNombre(mensajeDeError(err, 'No se pudo guardar el nombre.'));
+      setErrorNombre(traducirErrorAuth(err, 'nueva-password').mensaje);
     } finally {
       setGuardandoNombre(false);
     }
@@ -64,12 +56,9 @@ export function CuentaModal({ onClose }: CuentaModalProps) {
     setErrorPassword(null);
     setOkPassword(false);
 
-    if (passwordNueva.length < 6) {
-      setErrorPassword('La contraseña debe tener al menos 6 caracteres.');
-      return;
-    }
-    if (passwordNueva !== passwordConfirmar) {
-      setErrorPassword('Las contraseñas no coinciden.');
+    const errorValidacion = validarPasswordNueva(passwordNueva) ?? validarConfirmacion(passwordNueva, passwordConfirmar);
+    if (errorValidacion) {
+      setErrorPassword(errorValidacion);
       return;
     }
 
@@ -81,7 +70,7 @@ export function CuentaModal({ onClose }: CuentaModalProps) {
       setPasswordNueva('');
       setPasswordConfirmar('');
     } catch (err) {
-      setErrorPassword(mensajeDeError(err, 'No se pudo cambiar la contraseña.'));
+      setErrorPassword(traducirErrorAuth(err, 'nueva-password').mensaje);
     } finally {
       setCambiandoPassword(false);
     }
@@ -118,7 +107,7 @@ export function CuentaModal({ onClose }: CuentaModalProps) {
             </div>
           </div>
 
-          <form onSubmit={handleGuardarNombre} className="flex flex-col gap-3 pt-4 border-t border-outline-variant">
+          <form onSubmit={handleGuardarNombre} noValidate className="flex flex-col gap-3 pt-4 border-t border-outline-variant">
             <label className="flex flex-col gap-1.5 text-sm text-on-surface-variant">
               Nombre para mostrar
               <input
@@ -153,14 +142,13 @@ export function CuentaModal({ onClose }: CuentaModalProps) {
             </button>
           </form>
 
-          <form onSubmit={handleCambiarPassword} className="flex flex-col gap-3 pt-4 border-t border-outline-variant">
+          <form onSubmit={handleCambiarPassword} noValidate className="flex flex-col gap-3 pt-4 border-t border-outline-variant">
             <p className="text-sm font-medium text-on-surface">Cambiar contraseña</p>
             <label className="flex flex-col gap-1.5 text-sm text-on-surface-variant">
               Nueva contraseña
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  minLength={6}
                   maxLength={128}
                   autoComplete="new-password"
                   value={passwordNueva}
@@ -181,30 +169,12 @@ export function CuentaModal({ onClose }: CuentaModalProps) {
               </div>
             </label>
 
-            {fortaleza && (
-              <div className="-mt-1 flex flex-col gap-1">
-                <div className="flex gap-1">
-                  {[0, 1, 2].map((i) => (
-                    <div
-                      key={i}
-                      className={cn(
-                        'h-1.5 flex-1 rounded-full transition-colors',
-                        i < ESTILO_NIVEL[fortaleza.nivel].barras ? ESTILO_NIVEL[fortaleza.nivel].barra : 'bg-surface-container-high'
-                      )}
-                    />
-                  ))}
-                </div>
-                <span className={cn('text-xs font-medium', ESTILO_NIVEL[fortaleza.nivel].texto)}>
-                  Contraseña {ESTILO_NIVEL[fortaleza.nivel].label.toLowerCase()}
-                </span>
-              </div>
-            )}
+            <MedidorPassword password={passwordNueva} />
 
             <label className="flex flex-col gap-1.5 text-sm text-on-surface-variant">
               Confirmar nueva contraseña
               <input
                 type={showPassword ? 'text' : 'password'}
-                minLength={6}
                 maxLength={128}
                 autoComplete="new-password"
                 value={passwordConfirmar}

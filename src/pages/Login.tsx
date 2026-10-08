@@ -1,19 +1,21 @@
-import { useState, FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
+import { useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { AuthLayout } from '@/components/auth/AuthLayout';
+import { CampoPassword } from '@/components/auth/CampoPassword';
+import { MedidorPassword } from '@/components/auth/MedidorPassword';
 import { generarDatosEjemplo } from '@/lib/datosEjemplo';
-import { calcularFortalezaPassword, type NivelFortalezaPassword } from '@/lib/passwordStrength';
 import { RUTAS } from '@/lib/rutas';
-import { cn, scrollFieldIntoView } from '@/lib/utils';
-import logoTexto from '@/assets/logo/laburin-logo-texto.svg';
+import type { ErrorAuthTraducido } from '@/lib/authErrores';
+import { validarEmail, validarPasswordIngreso, validarPasswordNueva } from '@/lib/validacionAuth';
+import { scrollFieldIntoView } from '@/lib/utils';
 
-const ESTILO_NIVEL: Record<NivelFortalezaPassword, { label: string; barra: string; texto: string; barras: number }> = {
-  baja: { label: 'Débil', barra: 'bg-error', texto: 'text-error', barras: 1 },
-  media: { label: 'Media', barra: 'bg-warning', texto: 'text-warning', barras: 2 },
-  fuerte: { label: 'Fuerte', barra: 'bg-success', texto: 'text-success', barras: 3 },
-};
+interface ErroresCampos {
+  email?: string;
+  password?: string;
+}
+
+const CLASE_LINK = 'font-medium underline underline-offset-2 hover:opacity-80 cursor-pointer';
 
 export function Login() {
   const navigate = useNavigate();
@@ -21,15 +23,29 @@ export function Login() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [errores, setErrores] = useState<ErroresCampos>({});
+  const [errorServicio, setErrorServicio] = useState<ErrorAuthTraducido | null>(null);
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const emailRef = useRef<HTMLInputElement>(null);
 
   async function handleSubmit(event: FormEvent) {
     event.preventDefault();
-    setError(null);
+    setErrorServicio(null);
     setInfo(null);
+
+    // La validación nativa del navegador está apagada (noValidate): se valida acá, con mensajes propios.
+    const erroresNuevos: ErroresCampos = {
+      email: validarEmail(email) ?? undefined,
+      password: (mode === 'login' ? validarPasswordIngreso(password) : validarPasswordNueva(password)) ?? undefined,
+    };
+    setErrores(erroresNuevos);
+    if (erroresNuevos.email) {
+      emailRef.current?.focus();
+      return;
+    }
+    if (erroresNuevos.password) return;
+
     setLoading(true);
 
     if (mode === 'login') {
@@ -37,7 +53,7 @@ export function Login() {
       setLoading(false);
 
       if (signInError) {
-        setError(signInError);
+        setErrorServicio(signInError);
         return;
       }
 
@@ -49,7 +65,7 @@ export function Login() {
     setLoading(false);
 
     if (signUpError) {
-      setError(signUpError);
+      setErrorServicio(signUpError);
       return;
     }
 
@@ -62,93 +78,88 @@ export function Login() {
     setMode('login');
   }
 
+  function cambiarModo(nuevo: 'login' | 'signup') {
+    setMode(nuevo);
+    setErrores({});
+    setErrorServicio(null);
+    setInfo(null);
+  }
+
   function handleCompletarConEjemplo() {
     const datos = generarDatosEjemplo(new Date());
     setEmail(datos.email);
     setPassword(datos.password);
-    setError(null);
+    setErrores({});
+    setErrorServicio(null);
     setInfo(`Datos de ejemplo cargados. Contraseña: ${datos.password}`);
   }
 
-  const fortaleza = mode === 'signup' ? calcularFortalezaPassword(password) : null;
+  // "Ese email ya tiene una cuenta. Podés iniciar sesión o recuperar tu contraseña." con las dos acciones como enlaces.
+  function mensajeServicio(error: ErrorAuthTraducido): ReactNode {
+    if (error.codigo !== 'email_registrado') return error.mensaje;
+    return (
+      <>
+        Ese email ya tiene una cuenta. Podés{' '}
+        <button type="button" onClick={() => cambiarModo('login')} className={CLASE_LINK}>
+          iniciar sesión
+        </button>{' '}
+        o{' '}
+        <Link to="/recuperar" state={{ email }} className={CLASE_LINK}>
+          recuperar tu contraseña
+        </Link>
+        .
+      </>
+    );
+  }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-surface p-margin relative">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute -top-32 -left-24 w-96 h-96 rounded-full bg-primary/25 blur-3xl" />
-        <div className="absolute -bottom-40 -right-20 w-120 h-120 rounded-full bg-tertiary/15 blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-144 h-144 rounded-full bg-secondary/10 blur-3xl" />
-      </div>
-
-      <ThemeToggle className="absolute top-6 right-6" />
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-96 bg-surface-container-lowest border border-outline-variant rounded-xl p-8 shadow-sm flex flex-col gap-5"
-      >
-        <div className="flex flex-col items-center text-center">
-          <img src={logoTexto} alt="Laburin" className="h-28 w-auto" />
-          <p className="text-sm text-on-surface-variant mt-1">
-            {mode === 'login' ? 'Iniciá sesión para ver tus postulaciones.' : 'Creá tu cuenta para empezar.'}
-          </p>
+    <AuthLayout subtitulo={mode === 'login' ? 'Iniciá sesión para ver tus postulaciones.' : 'Creá tu cuenta para empezar.'}>
+      <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+        <div className="flex flex-col gap-1.5">
+          <label className="flex flex-col gap-1.5 text-sm text-on-surface-variant">
+            Email
+            <input
+              ref={emailRef}
+              type="email"
+              maxLength={254}
+              autoComplete="email"
+              value={email}
+              aria-invalid={Boolean(errores.email)}
+              aria-describedby={errores.email ? 'error-email' : undefined}
+              onChange={(e) => setEmail(e.target.value)}
+              onFocus={scrollFieldIntoView}
+              className="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all aria-invalid:border-error"
+            />
+          </label>
+          {errores.email && (
+            <p id="error-email" role="alert" className="text-sm text-error">
+              {errores.email}
+            </p>
+          )}
         </div>
 
-        <label className="flex flex-col gap-1.5 text-sm text-on-surface-variant">
-          Email
-          <input
-            type="email"
-            required
-            maxLength={254}
-            autoComplete="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            onFocus={scrollFieldIntoView}
-            className="w-full bg-surface border border-outline-variant rounded-lg px-3 py-2 text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all"
-          />
-        </label>
+        <CampoPassword
+          etiqueta="Contraseña"
+          value={password}
+          onChange={setPassword}
+          autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+          error={errores.password}
+          idError="error-password"
+        />
 
-        <label className="flex flex-col gap-1.5 text-sm text-on-surface-variant">
-          Contraseña
-          <div className="relative">
-            <input
-              type={showPassword ? 'text' : 'password'}
-              required
-              minLength={6}
-              maxLength={128}
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              onFocus={scrollFieldIntoView}
-              className="w-full bg-surface border border-outline-variant rounded-lg pl-3 pr-11 py-2 text-on-surface focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((v) => !v)}
-              aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-              className="absolute inset-y-0 right-0 w-11 flex items-center justify-center text-on-surface-variant hover:text-primary transition-colors cursor-pointer"
-            >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
-          </div>
-        </label>
+        {mode === 'login' && (
+          <Link
+            to="/recuperar"
+            state={{ email }}
+            className="self-start -mt-3 text-sm text-primary hover:underline underline-offset-2"
+          >
+            ¿Olvidaste tu contraseña?
+          </Link>
+        )}
 
-        {fortaleza && (
-          <div className="-mt-3 flex flex-col gap-1">
-            <div className="flex gap-1">
-              {[0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    'h-1.5 flex-1 rounded-full transition-colors',
-                    i < ESTILO_NIVEL[fortaleza.nivel].barras
-                      ? ESTILO_NIVEL[fortaleza.nivel].barra
-                      : 'bg-surface-container-high'
-                  )}
-                />
-              ))}
-            </div>
-            <span className={cn('text-xs font-medium', ESTILO_NIVEL[fortaleza.nivel].texto)}>
-              Contraseña {ESTILO_NIVEL[fortaleza.nivel].label.toLowerCase()}
-            </span>
+        {mode === 'signup' && (
+          <div className="-mt-3">
+            <MedidorPassword password={password} />
           </div>
         )}
 
@@ -162,7 +173,11 @@ export function Login() {
           </button>
         )}
 
-        {error && <p className="text-sm text-error">{error}</p>}
+        {errorServicio && (
+          <p role="alert" className="text-sm text-error">
+            {mensajeServicio(errorServicio)}
+          </p>
+        )}
         {info && <p className="text-sm text-primary">{info}</p>}
 
         <button
@@ -175,16 +190,12 @@ export function Login() {
 
         <button
           type="button"
-          onClick={() => {
-            setMode(mode === 'login' ? 'signup' : 'login');
-            setError(null);
-            setInfo(null);
-          }}
+          onClick={() => cambiarModo(mode === 'login' ? 'signup' : 'login')}
           className="text-sm text-on-surface-variant hover:text-primary transition-colors"
         >
           {mode === 'login' ? '¿No tenés cuenta? Registrate' : '¿Ya tenés cuenta? Iniciá sesión'}
         </button>
       </form>
-    </div>
+    </AuthLayout>
   );
 }

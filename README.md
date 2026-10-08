@@ -15,7 +15,7 @@ Plataforma web para organizar y hacer seguimiento de una búsqueda laboral, con 
 - **Ficha de postulación:** línea de tiempo de interacciones (mail, llamada, entrevista, nota).
 - **Recordatorios por inactividad:** aviso cuando una postulación abierta lleva N días sin novedades; N lo elige cada usuario (de 1 a 90, 7 por defecto).
 - **Mi progreso (métricas):** embudo, tasa de respuesta, puntaje promedio y actividad reciente.
-- **Cuenta:** registro, onboarding de 4 pasos y "Mi cuenta" (nombre, contraseña, tema claro/oscuro). Los datos de cada usuario quedan aislados con RLS.
+- **Cuenta:** registro, configuración inicial guiada en 5 pasos, recuperación de contraseña por email y "Mi cuenta" (nombre, contraseña, tema claro/oscuro). Los errores de autenticación se muestran siempre en español. Los datos de cada usuario quedan aislados con RLS.
 
 ## Stack
 

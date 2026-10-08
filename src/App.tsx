@@ -10,6 +10,8 @@ import { AuthProvider } from './hooks/useAuth';
 import { ThemeProvider } from './hooks/useTheme';
 import { OnboardingProvider } from './hooks/useOnboarding';
 import { Login } from './pages/Login';
+import { RecuperarPassword } from './pages/RecuperarPassword';
+import { NuevaPassword } from './pages/NuevaPassword';
 import { Onboarding } from './pages/Onboarding';
 import { Tablero } from './pages/Tablero';
 import { Offers } from './pages/Offers';
@@ -25,6 +27,8 @@ export default function App() {
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Login />} />
+              <Route path="/recuperar" element={<RecuperarPassword />} />
+              <Route path="/nueva-contrasena" element={<NuevaPassword />} />
 
               <Route
                 path="/onboarding"

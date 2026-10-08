@@ -74,7 +74,7 @@ test('Mi cuenta (nombre, tema, contraseña) y sesión (cerrar, reingresar, los d
 
   // --- La contraseña vieja ya no sirve; la nueva sí, y los datos siguen ahí ---
   await iniciarSesionPorUI(page, cuenta);
-  await expect(page.getByText(/Invalid login credentials/i)).toBeVisible();
+  await expect(page.getByText('El email y la contraseña no coinciden. Revisalos o recuperá tu contraseña.')).toBeVisible();
   await campoPassword(page).fill(nuevaPassword);
   await page.getByRole('button', { name: 'Ingresar' }).click();
   await expect(page).toHaveURL(/\/mis-postulaciones$/);
