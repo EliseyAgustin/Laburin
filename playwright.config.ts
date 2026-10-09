@@ -51,7 +51,8 @@ export default defineConfig({
     {
       name: 'mobile',
       dependencies: ['setup-mobile'],
-      testIgnore: /auth\.setup\.ts/,
+      // Las pruebas de seguridad hablan directo con la API (sin navegador): una sola corrida alcanza.
+      testIgnore: [/auth\.setup\.ts/, /seguridad-.*\.spec\.ts/],
       use: { ...mobile, storageState: 'e2e/.auth/mobile.json' },
     },
   ],

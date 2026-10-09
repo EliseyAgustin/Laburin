@@ -27,6 +27,11 @@ export function cuentaCompartida(proyecto: Proyecto): Cuenta {
   };
 }
 
+// Cuenta con rol administrador (se asigna una sola vez por SQL; ver e2e/README.md). Los tests solo inician sesión con ella.
+export function cuentaAdministrador(): Cuenta {
+  return { email: requerida('E2E_ADMIN_EMAIL'), password: requerida('E2E_ADMIN_PASSWORD') };
+}
+
 export function passwordDePrueba(): string {
   return requerida('E2E_PASSWORD');
 }

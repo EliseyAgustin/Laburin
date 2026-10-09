@@ -48,6 +48,9 @@ export async function crearApi({ email, password }: Cuenta): Promise<Api> {
         const { error: e } = await sb.from(tabla).delete().eq('user_id', userId);
         if (e) throw new Error(`No se pudo limpiar ${tabla}: ${e.message}`);
       }
+      // Los mensajes recibidos (bienvenida y los del administrador) los puede borrar su destinatario.
+      const { error: em } = await sb.from('mensajes').delete().eq('destinatario_id', userId);
+      if (em) throw new Error(`No se pudo limpiar mensajes: ${em.message}`);
     },
 
     // Estado conocido: onboarding completo, umbral por defecto, criterios base y ninguna oferta.
