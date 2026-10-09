@@ -89,7 +89,7 @@ test.describe('más de 1000 ofertas', () => {
       []
     );
     await page.goto('/ofertas');
-    await page.getByRole('button', { name: 'Importar ofertas remotas' }).click();
+    await page.getByRole('button', { name: 'Importar ofertas remotas' }).first().click(); // el estado vacío repite el botón
     await expect(page.getByText('1 oferta nueva importada · 1 duplicada omitida')).toBeVisible();
 
     expect(await api.contarOfertas()).toBe(TOTAL + 1);

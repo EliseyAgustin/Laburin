@@ -21,12 +21,12 @@ test('importar remotas, filtrar combinado y borrar exactamente lo seleccionado',
   await page.goto('/ofertas');
 
   // --- Importar ---
-  await page.getByRole('button', { name: 'Importar ofertas remotas' }).click();
+  await page.getByRole('button', { name: 'Importar ofertas remotas' }).first().click(); // el estado vacío repite el botón
   await expect(page.getByText('8 ofertas nuevas importadas')).toBeVisible();
   await expect(page.getByText('8 ofertas', { exact: true })).toBeVisible();
 
   // --- Reimportar: todo se omite por duplicado ---
-  await page.getByRole('button', { name: 'Importar ofertas remotas' }).click();
+  await page.getByRole('button', { name: 'Importar ofertas remotas' }).first().click(); // el estado vacío repite el botón
   await expect(page.getByText('0 ofertas nuevas importadas · 8 duplicadas omitidas')).toBeVisible();
   expect(await api.contarOfertas()).toBe(8);
 
@@ -59,7 +59,7 @@ test('importar remotas, filtrar combinado y borrar exactamente lo seleccionado',
 test('la selección masiva respeta los filtros: no toca lo que quedó afuera', async ({ page, api }) => {
   await mockearFuentes(page, REMOTIVE, ARBEITNOW);
   await page.goto('/ofertas');
-  await page.getByRole('button', { name: 'Importar ofertas remotas' }).click();
+  await page.getByRole('button', { name: 'Importar ofertas remotas' }).first().click(); // el estado vacío repite el botón
   await expect(page.getByText('8 ofertas nuevas importadas')).toBeVisible();
 
   await page.getByLabel('Fuente').selectOption('Arbeitnow');

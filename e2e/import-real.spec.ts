@@ -5,7 +5,7 @@ import { expect, test } from './fixtures';
 test('smoke: importar desde las fuentes reales', async ({ page, api }) => {
   test.slow();
   await page.goto('/ofertas');
-  await page.getByRole('button', { name: 'Importar ofertas remotas' }).click();
+  await page.getByRole('button', { name: 'Importar ofertas remotas' }).first().click(); // el estado vacío repite el botón
 
   const resultado = page.getByText(/ofertas nuevas importadas/);
   await expect(resultado).toBeVisible({ timeout: 90_000 });
