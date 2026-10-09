@@ -7,7 +7,7 @@ import { pathToFileURL } from 'node:url';
 const AQUI = import.meta.dirname;
 
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 1700, height: 1000 } });
+const page = await browser.newPage({ viewport: { width: 1700, height: 1220 } });
 await page.goto(pathToFileURL(path.join(AQUI, 'der.html')).href);
 await page.screenshot({ path: path.join(AQUI, 'capturas', '09-der.png') });
 await browser.close();
