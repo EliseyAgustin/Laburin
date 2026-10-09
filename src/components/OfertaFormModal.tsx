@@ -165,7 +165,7 @@ export function OfertaFormModal({ oferta, onClose, onSubmit }: OfertaFormModalPr
           </div>
 
           <label className="flex flex-col gap-1.5 text-sm text-on-surface-variant">
-            Stack tecnológico
+            Tecnologías
             <div className="flex flex-wrap gap-2 bg-surface border border-outline-variant rounded-lg px-3 py-2 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary transition-all">
               {stack.map((item) => (
                 <span

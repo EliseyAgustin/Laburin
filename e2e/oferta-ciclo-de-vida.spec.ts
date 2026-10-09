@@ -78,7 +78,7 @@ test('ciclo de vida de una oferta: crear, score, postular, mover por las 6 colum
   // --- Ficha: agregar y borrar interacciones ---
   await tarjeta.click();
   await expect(page.getByRole('heading', { name: ROL, level: 2 })).toBeVisible();
-  await expect(page.getByLabel('Estado actual en el pipeline')).toHaveValue('rechazado');
+  await expect(page.getByLabel('Estado de la postulación')).toHaveValue('rechazado');
 
   await page.getByRole('button', { name: 'Agregar interacción' }).click();
   await page.getByLabel('Tipo').selectOption('nota');
@@ -105,7 +105,7 @@ test('ciclo de vida de una oferta: crear, score, postular, mover por las 6 colum
   await page.reload();
   await expect(encabezado('Rechazado')).toContainText('1');
   await page.getByRole('heading', { name: ROL, level: 4 }).click();
-  await expect(page.getByLabel('Estado actual en el pipeline')).toHaveValue('rechazado');
+  await expect(page.getByLabel('Estado de la postulación')).toHaveValue('rechazado');
   await expect(page.getByRole('button', { name: 'Eliminar interacción' })).toHaveCount(1);
 
   const { data: interacciones } = await api.sb.from('interacciones').select('tipo, notas');

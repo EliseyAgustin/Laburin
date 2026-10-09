@@ -267,7 +267,7 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
 
             <div>
               <label htmlFor="ficha-estado" className="block text-xs font-medium text-on-surface-variant mb-2">
-                Estado actual en el pipeline
+                Estado de la postulación
               </label>
               <select
                 id="ficha-estado"
@@ -285,7 +285,7 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
 
             <div>
               <div className="flex items-center justify-between mb-6 border-b border-outline-variant pb-2">
-                <h3 className="text-xl font-heading font-semibold text-on-surface">Timeline de Interacciones</h3>
+                <h3 className="text-xl font-heading font-semibold text-on-surface">Línea de tiempo de interacciones</h3>
               </div>
 
               {interacciones.length === 0 ? (
