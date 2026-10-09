@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { mensajeDeError } from '@/lib/errores';
 import { claveDedupeOferta, FUENTE_MANUAL } from '@/lib/fuentes';
 import { escaparLike, leerEnLotes, rangoDePagina } from '@/lib/lotes';
+import { ubicacionesDistintas } from '@/lib/ubicaciones';
 import { calcularScoring, obtenerCriteriosActivos } from '@/services/scoring';
 import type { Oferta, OfertaInput } from '@/types/oferta';
 
@@ -193,4 +194,12 @@ export function eliminarOfertas(ids: string[]) {
     if (error) throw error;
     return data.map((fila) => fila.id as string);
   });
+}
+
+// Ubicaciones que aparecen en las ofertas cargadas, para sugerirlas en el filtro (RLS: solo las del usuario).
+export async function listarUbicacionesDeOfertas(): Promise<string[]> {
+  const filas = await leerEnLotes<{ ubicacion: string | null }>((desde, hasta) =>
+    supabase.from('ofertas').select('ubicacion').order('id').range(desde, hasta)
+  );
+  return ubicacionesDistintas(filas.map((f) => f.ubicacion));
 }

@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { X } from 'lucide-react';
+import { Check, X } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { RUTAS } from '@/lib/rutas';
+import { listarCriterios } from '@/services/criteriosScoring';
 import { contarMisPostulaciones } from '@/services/postulaciones';
+import { cn } from '@/lib/utils';
 
 const PASOS = [
   { texto: 'Revisá tu perfil de búsqueda', enlace: 'Ir a Mi perfil de búsqueda', ruta: RUTAS.perfil },
@@ -26,6 +28,8 @@ function leerCerrada(userId: string): boolean {
 export function PrimerosPasos() {
   const { user } = useAuth();
   const [visible, setVisible] = useState(false);
+  // null = todavía no se sabe. El paso 1 está hecho cuando el usuario ya tiene criterios en su perfil de búsqueda.
+  const [tienePerfil, setTienePerfil] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (!user || leerCerrada(user.id)) {
@@ -40,6 +44,11 @@ export function PrimerosPasos() {
       .catch(() => {
         if (!cancelado) setVisible(false);
       });
+    listarCriterios()
+      .then((criterios) => {
+        if (!cancelado) setTienePerfil(criterios.length > 0);
+      })
+      .catch(() => undefined);
     return () => {
       cancelado = true;
     };
@@ -74,19 +83,35 @@ export function PrimerosPasos() {
       </h2>
       <p className="text-sm mt-1">Cuatro pasos para empezar a usar Laburin. Esta tarjeta desaparece cuando te postules.</p>
       <ol className="mt-3 grid gap-2 md:grid-cols-2">
-        {PASOS.map((paso, i) => (
-          <li key={paso.texto} className="flex items-start gap-3 text-sm">
-            <span className="w-6 h-6 rounded-full bg-primary text-on-primary text-xs font-semibold flex items-center justify-center shrink-0">
-              {i + 1}
-            </span>
-            <span>
-              {paso.texto}.{' '}
-              <Link to={paso.ruta} className="font-medium underline underline-offset-2">
-                {paso.enlace}
-              </Link>
-            </span>
-          </li>
-        ))}
+        {PASOS.map((paso, i) => {
+          const hecho = i === 0 && tienePerfil === true;
+          const pendiente = i === 0 && tienePerfil === false;
+          return (
+            <li
+              key={paso.texto}
+              data-estado={hecho ? 'hecho' : pendiente ? 'pendiente' : undefined}
+              className={cn(
+                'flex items-start gap-3 text-sm rounded-lg',
+                pendiente && 'bg-surface-container-lowest text-on-surface ring-2 ring-primary p-3 -m-1'
+              )}
+            >
+              <span className="w-6 h-6 rounded-full bg-primary text-on-primary text-xs font-semibold flex items-center justify-center shrink-0">
+                {hecho ? <Check className="w-3.5 h-3.5" aria-label="Hecho" /> : i + 1}
+              </span>
+              <span>
+                {paso.texto}.{' '}
+                {pendiente && (
+                  <span className="inline-block text-[11px] font-semibold uppercase tracking-wide bg-tertiary-container text-on-tertiary-container rounded-full px-2 py-0.5 mr-1">
+                    Pendiente
+                  </span>
+                )}
+                <Link to={paso.ruta} className="font-medium underline underline-offset-2">
+                  {paso.enlace}
+                </Link>
+              </span>
+            </li>
+          );
+        })}
       </ol>
     </section>
   );

@@ -157,6 +157,12 @@ export function Tablero() {
           help="Seguí en qué etapa está cada postulación. Arrastrá las tarjetas entre columnas, o usá el selector en el celular."
         />
         <PrimerosPasos />
+        {Object.keys(recordatorios).length > 0 && (
+          <p className="text-sm text-on-surface-variant">
+            Las tarjetas con «Sin novedades» llevan un recordatorio: es solo un aviso, no se borra ni se cambia nada. Podés
+            cambiar cada cuántos días avisamos en Mi perfil de búsqueda.
+          </p>
+        )}
         {postulaciones.length === 0 && (
           <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 flex flex-wrap items-center justify-between gap-3">
             <p className="text-sm text-on-surface-variant">
@@ -232,7 +238,9 @@ export function Tablero() {
                         <Building2 className="w-3.5 h-3.5" /> {postulacion.oferta.empresa}
                       </p>
                       {recordatorios[postulacion.id] && !estadoEsFinal(postulacion.estado) && (
-                        <span className="self-start mb-sm inline-flex items-center gap-1 bg-tertiary-container text-on-tertiary-container px-2 py-0.5 rounded-full text-[11px] font-semibold">
+                        <span
+                          title="Recordatorio: no se borra nada. Registrá una novedad o marcalo como resuelto desde la ficha."
+                          className="self-start mb-sm inline-flex items-center gap-1 bg-tertiary-container text-on-tertiary-container px-2 py-0.5 rounded-full text-[11px] font-semibold">
                           <AlertTriangle className="w-3 h-3" />
                           Sin novedades hace {recordatorios[postulacion.id].dias_inactividad} días
                         </span>

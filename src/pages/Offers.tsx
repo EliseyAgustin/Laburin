@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Download, Filter, MapPin, Clock, Building2, Pencil, Trash2, Plus, Inbox, Send, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { PageHeader } from '@/components/PageHeader';
 import { PrimerosPasos } from '@/components/PrimerosPasos';
 import { mensajeDeError } from '@/lib/errores';
@@ -9,7 +10,9 @@ import { OfertaFormModal } from '@/components/OfertaFormModal';
 import { FUENTES_OFERTA } from '@/lib/fuentes';
 import { paginaDentroDeRango, totalPaginas } from '@/lib/lotes';
 import { alternarId, alternarTodas, estadoSeleccionTodas } from '@/lib/seleccion';
+import { RUTAS } from '@/lib/rutas';
 import { scoreBandClasses, scoreBorderClasses } from '@/lib/utils';
+import { ajustarPuntajeMinimo, listarCriterios, puntajeMaximoPosible } from '@/services/criteriosScoring';
 import {
   actualizarOferta,
   contarPostulacionesDeOfertas,
@@ -19,10 +22,12 @@ import {
   FILTROS_OFERTAS_VACIOS,
   listarIdsOfertas,
   listarOfertasPagina,
+  listarUbicacionesDeOfertas,
   type FiltrosOfertas,
 } from '@/services/ofertas';
 import { crearPostulacion, ESTADO_POSTULACION_LABEL, listarPostulacionesDeOfertas } from '@/services/postulaciones';
 import { importarOfertasRemotas, resumenImportacion } from '@/services/fuentesExternas';
+import type { CriterioScoring } from '@/types/criterioScoring';
 import type { Oferta, OfertaInput } from '@/types/oferta';
 import type { EstadoPostulacion, Postulacion } from '@/types/postulacion';
 
@@ -61,6 +66,35 @@ export function Offers() {
   const [ubicacionDraft, setUbicacionDraft] = useState('');
   const [scoreDraft, setScoreDraft] = useState(0);
   const [filtros, setFiltros] = useState<FiltrosOfertas>(FILTROS_OFERTAS_VACIOS);
+  // null = todavía cargando: hasta saber si hay perfil no se muestra el aviso ni se fija el tope del puntaje.
+  const [criterios, setCriterios] = useState<CriterioScoring[] | null>(null);
+  const [ubicacionesSugeridas, setUbicacionesSugeridas] = useState<string[]>([]);
+
+  const puntajeMaximo = puntajeMaximoPosible(criterios ?? []);
+  const sinPerfil = criterios !== null && criterios.length === 0;
+
+  useEffect(() => {
+    let cancelado = false;
+    // Si alguna de las dos cargas falla, la pantalla sigue funcionando: sin sugerencias y con la escala de 100.
+    listarCriterios()
+      .then((data) => !cancelado && setCriterios(data))
+      .catch(() => !cancelado && setCriterios([]));
+    listarUbicacionesDeOfertas()
+      .then((data) => !cancelado && setUbicacionesSugeridas(data))
+      .catch(() => undefined);
+    return () => {
+      cancelado = true;
+    };
+  }, []);
+
+  // Si el tope baja (por ejemplo, se desactivó un criterio) y el mínimo elegido ya no entra, se ajusta.
+  useEffect(() => {
+    if (criterios === null) return;
+    setScoreDraft((actual) => ajustarPuntajeMinimo(actual, puntajeMaximo));
+    setFiltros((actuales) =>
+      actuales.score > puntajeMaximo ? { ...actuales, score: ajustarPuntajeMinimo(actuales.score, puntajeMaximo) } : actuales
+    );
+  }, [criterios, puntajeMaximo]);
 
   useEffect(() => {
     cargar();
@@ -275,6 +309,22 @@ export function Offers() {
             help="Buscá, importá y filtrá ofertas. Las ordenamos con un puntaje según tu perfil de búsqueda."
           />
           <PrimerosPasos />
+          {sinPerfil && (
+            <div
+              role="note"
+              className="bg-tertiary-container text-on-tertiary-container rounded-xl p-4 flex flex-wrap items-center justify-between gap-3"
+            >
+              <p className="text-sm">
+                Todavía no armaste tu perfil de búsqueda. Completalo para ver qué ofertas te convienen más.
+              </p>
+              <Link
+                to={RUTAS.perfil}
+                className="bg-primary text-on-primary text-sm font-medium px-5 py-2.5 rounded-lg shadow-sm hover:opacity-90 transition-all"
+              >
+                Completar mi perfil de búsqueda
+              </Link>
+            </div>
+          )}
         </div>
 
         {/* Filters Row */}
@@ -300,7 +350,7 @@ export function Offers() {
           </div>
 
           <div className="flex-1 min-w-37.5">
-            <label htmlFor="filtro-ubicacion" className="block text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Ubicación</label>
+            <label htmlFor="filtro-ubicacion" className="block text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider">Ubicación (ciudad o país)</label>
             <div className="relative">
               <MapPin className="absolute left-2 top-2 text-on-surface-variant w-4.5 h-4.5" />
               <input
@@ -309,26 +359,44 @@ export function Offers() {
                 maxLength={100}
                 value={ubicacionDraft}
                 onChange={(e) => setUbicacionDraft(e.target.value)}
-                placeholder="Ciudad o País"
+                list="ubicaciones-sugeridas"
+                aria-describedby="ayuda-ubicacion"
+                placeholder="Ej: Argentina, Madrid, Remoto"
                 className="w-full bg-surface-container-lowest border border-outline-variant text-on-surface text-sm rounded-lg py-2 pl-8 pr-2 focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none"
               />
+              <datalist id="ubicaciones-sugeridas">
+                {ubicacionesSugeridas.map((u) => (
+                  <option key={u} value={u} />
+                ))}
+              </datalist>
             </div>
+            <p id="ayuda-ubicacion" className="text-xs text-on-surface-variant mt-1">
+              Escribí una ciudad o un país. Muchas ofertas remotas figuran solo por país o como «Remoto» o «Worldwide».
+            </p>
           </div>
 
-          <div className="w-50">
+          <div className="w-full md:w-64">
             <label htmlFor="filtro-score" className="text-[11px] font-semibold text-on-surface-variant mb-1 uppercase tracking-wider flex justify-between">
-              <span>Score Mínimo</span>
+              <span>Puntaje mínimo</span>
               <span className="text-primary font-bold">{scoreDraft}+</span>
             </label>
             <input
               id="filtro-score"
               type="range"
               min="0"
-              max="100"
+              max={puntajeMaximo}
+              step="1"
               value={scoreDraft}
+              aria-describedby="ayuda-puntaje"
               onChange={(e) => setScoreDraft(Number(e.target.value))}
               className="w-full accent-primary"
             />
+            <p id="ayuda-puntaje" className="text-xs text-on-surface-variant mt-1">
+              Muestra solo las ofertas con este puntaje o más. El puntaje suma los pesos de tu perfil que cada oferta cumple.
+            </p>
+            <p className="text-xs font-medium text-on-surface-variant mt-0.5">
+              Máximo posible con tu perfil: {puntajeMaximo} puntos
+            </p>
           </div>
 
           <div className="mt-5">

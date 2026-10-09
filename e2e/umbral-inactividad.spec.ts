@@ -27,6 +27,9 @@ test('umbral de inactividad: persiste, se valida y cambia cuándo aparece el rec
   // --- El valor visible es el mismo que usa el motor (7) y se puede cambiar ---
   await page.goto('/mi-perfil');
   await expect(umbral).toHaveValue('7');
+  // El texto aclara que es solo un aviso: no se elimina ninguna postulación.
+  await expect(page.getByText('Avisarme cuando una postulación lleve esta cantidad de días sin novedades.')).toBeVisible();
+  await expect(page.getByText('Solo te mostramos un recordatorio en Mis postulaciones; no se borra nada.')).toBeVisible();
   await guardarUmbral('14');
   await expect.poll(diasEnBase).toBe(14);
 
@@ -52,6 +55,7 @@ test('umbral de inactividad: persiste, se valida y cambia cuándo aparece el rec
   await expect.poll(diasEnBase).toBe(7);
   await page.goto('/mis-postulaciones');
   await expect(badge).toBeVisible();
+  await expect(page.getByText(/es solo un aviso, no se borra ni se cambia nada/)).toBeVisible();
 
   // --- Política "solo hacia adelante": subir el umbral no borra el recordatorio ya generado ---
   await page.goto('/mi-perfil');

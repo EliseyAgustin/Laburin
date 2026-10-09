@@ -23,6 +23,22 @@ export function clampPeso(valor: number): number {
   return Math.min(PESO_MAXIMO, Math.max(PESO_MINIMO, valor));
 }
 
+// Escala del filtro "Puntaje mínimo" cuando todavía no hay criterios activos con los que calcular un máximo.
+export const PUNTAJE_MAXIMO_SIN_CRITERIOS = 100;
+
+// Lo más que puede sumar una oferta con el perfil del usuario: la suma de los pesos de sus criterios activos
+// (stack, modalidad y ubicación). Es el tope del filtro "Puntaje mínimo"; solo interfaz, no interviene en el cálculo.
+export function puntajeMaximoPosible(criterios: Pick<CriterioScoring, 'peso' | 'activo'>[]): number {
+  const suma = criterios.filter((c) => c.activo).reduce((total, c) => total + Number(c.peso), 0);
+  return suma > 0 ? Math.ceil(suma) : PUNTAJE_MAXIMO_SIN_CRITERIOS;
+}
+
+// Si el tope baja (por ejemplo, se desactivó un criterio), un mínimo que ya no entra se ajusta en lugar de quedar fuera de escala.
+export function ajustarPuntajeMinimo(valor: number, tope: number): number {
+  if (Number.isNaN(valor)) return 0;
+  return Math.min(tope, Math.max(0, valor));
+}
+
 export const MODALIDAD_LABEL: Record<Modalidad, string> = {
   remoto: 'Remoto',
   hibrido: 'Híbrido',

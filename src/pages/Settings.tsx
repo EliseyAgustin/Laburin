@@ -625,7 +625,10 @@ export function Settings() {
             <div>
               <h3 className="text-xl font-heading font-semibold text-on-surface">Recordatorio por falta de novedades</h3>
               <p className="text-sm text-on-surface-variant">
-                Días sin novedades en una postulación antes de avisarte con un recordatorio.
+                Avisarme cuando una postulación lleve esta cantidad de días sin novedades.
+              </p>
+              <p className="text-sm text-on-surface-variant">
+                Solo te mostramos un recordatorio en Mis postulaciones; no se borra nada.
               </p>
             </div>
           </div>

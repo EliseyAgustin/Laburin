@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { clampPeso, construirCriterio, PESO_DEFECTO, PESO_MAXIMO, PESO_MINIMO } from '@/services/criteriosScoring';
+import {
+  ajustarPuntajeMinimo,
+  clampPeso,
+  construirCriterio,
+  PESO_DEFECTO,
+  PESO_MAXIMO,
+  PESO_MINIMO,
+  puntajeMaximoPosible,
+  PUNTAJE_MAXIMO_SIN_CRITERIOS,
+} from '@/services/criteriosScoring';
 
 describe('construirCriterio', () => {
   it('arma un criterio "contiene" sobre stack_tecnologico para la categoría stack', () => {
@@ -74,5 +83,42 @@ describe('PESO_DEFECTO', () => {
     for (const peso of Object.values(PESO_DEFECTO)) {
       expect(clampPeso(peso)).toBe(peso);
     }
+  });
+});
+
+describe('puntajeMaximoPosible', () => {
+  const c = (peso: number, activo = true) => ({ peso, activo });
+
+  it('suma los pesos de todos los criterios activos (stack, modalidad y ubicación)', () => {
+    expect(puntajeMaximoPosible([c(15), c(15), c(10), c(5)])).toBe(45);
+  });
+  it('ignora los criterios desactivados', () => {
+    expect(puntajeMaximoPosible([c(15), c(30, false), c(10)])).toBe(25);
+  });
+  it('sin criterios activos usa la escala de 100', () => {
+    expect(PUNTAJE_MAXIMO_SIN_CRITERIOS).toBe(100);
+    expect(puntajeMaximoPosible([])).toBe(100);
+    expect(puntajeMaximoPosible([c(15, false)])).toBe(100);
+    expect(puntajeMaximoPosible([c(0)])).toBe(100);
+  });
+  it('redondea hacia arriba los pesos con decimales, para no dejar afuera el máximo real', () => {
+    expect(puntajeMaximoPosible([c(12.5), c(10.2)])).toBe(23);
+  });
+  it('acepta pesos que llegan como texto desde la base (numeric)', () => {
+    expect(puntajeMaximoPosible([{ peso: '15.00' as unknown as number, activo: true }, c(10)])).toBe(25);
+  });
+});
+
+describe('ajustarPuntajeMinimo', () => {
+  it('deja el valor si entra en el tope', () => {
+    expect(ajustarPuntajeMinimo(30, 45)).toBe(30);
+    expect(ajustarPuntajeMinimo(45, 45)).toBe(45);
+  });
+  it('baja el valor al tope si lo supera', () => {
+    expect(ajustarPuntajeMinimo(80, 45)).toBe(45);
+  });
+  it('nunca baja de 0 ni devuelve un valor inválido', () => {
+    expect(ajustarPuntajeMinimo(-5, 45)).toBe(0);
+    expect(ajustarPuntajeMinimo(Number.NaN, 45)).toBe(0);
   });
 });

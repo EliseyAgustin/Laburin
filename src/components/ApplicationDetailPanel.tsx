@@ -218,9 +218,12 @@ export function ApplicationDetailPanel({ postulacionId, onClose, onEstadoChange,
           <>
             {recordatorio && !estadoEsFinal(postulacion.estado) && (
               <div className="flex items-center justify-between gap-3 p-4 bg-tertiary-container text-on-tertiary-container rounded-lg">
-                <div className="flex items-center gap-2 text-sm font-medium">
-                  <AlertTriangle className="w-4.5 h-4.5 shrink-0" />
-                  Sin novedades hace {recordatorio.dias_inactividad} días
+                <div className="flex flex-col gap-0.5">
+                  <div className="flex items-center gap-2 text-sm font-medium">
+                    <AlertTriangle className="w-4.5 h-4.5 shrink-0" />
+                    Sin novedades hace {recordatorio.dias_inactividad} días
+                  </div>
+                  <p className="text-xs pl-6.5">Es solo un recordatorio: no se borró ni se cambió nada.</p>
                 </div>
                 <button
                   type="button"
