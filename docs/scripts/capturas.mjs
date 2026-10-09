@@ -166,6 +166,8 @@ try {
   // En la captura se muestra un email genérico; el registro real usa el de la cuenta de prueba.
   await page.getByLabel('Email').fill('camila.ejemplo@correo.com');
   await page.getByLabel(/^Contraseña/).fill(camila.password);
+  // El botón de datos de ejemplo solo existe al correr en modo desarrollo: no se muestra en la documentación.
+  await page.getByRole('button', { name: /datos de ejemplo/ }).evaluate((el) => el.remove()).catch(() => undefined);
   await shot(page, '02-registro', { clip: { x: 240, y: 0, width: 1120, height: 900 } });
   await page.getByLabel('Email').fill(camila.email);
   await page.getByRole('button', { name: 'Registrarme' }).click();
