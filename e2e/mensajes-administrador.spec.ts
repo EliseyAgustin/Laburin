@@ -55,6 +55,9 @@ test('candidato se registra y recibe la bienvenida; el administrador lo ve, le e
   await entrarComoAdministrador(page);
   await abrirMenuSiHaceFalta(page);
   await expect(page.getByRole('link', { name: 'Candidatos', exact: true })).toBeVisible();
+  // El texto bajo el logo es neutro para el administrador (no "busca empleo").
+  await expect(page.getByText('Panel de administración')).toBeVisible();
+  await expect(page.getByText('Tu búsqueda de empleo')).toHaveCount(0);
   for (const personal of ['Ofertas', 'Mis postulaciones', 'Mi progreso', 'Mi perfil de búsqueda', 'Mensajes']) {
     await expect(page.getByRole('link', { name: personal, exact: true })).toHaveCount(0);
   }
