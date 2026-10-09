@@ -102,7 +102,7 @@ async function completarPerfil(page, p, { capturar = false } = {}) {
   await continuar.click();
   await page.getByRole('button', { name: p.nivel, exact: true }).click();
   await continuar.click();
-  if (capturar) await shot(page, '03c-onboarding-resumen', { fullPage: true });
+  if (capturar) await shot(page, '03c-onboarding-resumen', { fullPage: true, clip: { x: 540, y: 10, width: 520, height: 1064 } });
   await page.getByRole('button', { name: 'Confirmar y terminar' }).click();
   await page.getByRole('heading', { name: 'Tu perfil quedó listo' }).waitFor();
   if (capturar) await shot(page, '03d-onboarding-listo', { clip: { x: 340, y: 160, width: 920, height: 520 } });
@@ -312,7 +312,8 @@ try {
   await pa.getByLabel('Mensaje', { exact: true }).fill('Hola Camila, te falta indicar tu disponibilidad horaria. Con ese dato tenemos en cuenta tu solicitud.');
   await pa.getByRole('button', { name: 'Enviar mensaje' }).click();
   await pa.getByText('Mensaje enviado.').waitFor();
-  await shot(pa, '13-candidato-detalle', { fullPage: true });
+  await pa.setViewportSize({ width: 1600, height: 1250 }); // más alto para que entre también el historial de enviados
+  await shot(pa, '13-candidato-detalle');
 
   // ============ Camila ve el mensaje ============
   await page.goto(`${BASE}/mensajes`, { waitUntil: 'networkidle' });
