@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { X, Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { AvisoPrivacidad } from '@/components/AvisoPrivacidad';
 import { supabase } from '@/lib/supabase';
 import { traducirErrorAuth } from '@/lib/authErrores';
 import { validarConfirmacion, validarPasswordNueva } from '@/lib/validacionAuth';
@@ -43,6 +44,11 @@ export function CuentaModal({ onClose }: CuentaModalProps) {
     try {
       const { error } = await supabase.auth.updateUser({ data: { full_name: nombre.trim() } });
       if (error) throw error;
+      // También en el perfil de búsqueda, que es lo que ve el equipo de Laburin (null si se borra el nombre).
+      const { error: errorPerfil } = await supabase
+        .from('perfil_usuario')
+        .upsert({ user_id: user!.id, nombre: nombre.trim() || null }, { onConflict: 'user_id' });
+      if (errorPerfil) throw errorPerfil;
       setOkNombre(true);
     } catch (err) {
       setErrorNombre(traducirErrorAuth(err, 'nueva-password').mensaje);
@@ -131,6 +137,7 @@ export function CuentaModal({ onClose }: CuentaModalProps) {
                 className="w-full bg-surface-container-high border border-outline-variant rounded-lg px-3 py-2 text-on-surface-variant cursor-not-allowed"
               />
             </label>
+            <AvisoPrivacidad />
             {errorNombre && <p className="text-sm text-error">{errorNombre}</p>}
             {okNombre && <p className="text-sm text-success">Nombre guardado.</p>}
             <button

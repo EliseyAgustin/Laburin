@@ -34,6 +34,7 @@ test('registro con errores, perfil guiado, primeros pasos, postulación, recorda
 
   // --- Registro correcto y perfil guiado ---
   const cuenta = await registrarPorUI(page);
+  await page.getByLabel('¿Cómo te llamás?').fill('Julieta Rojas');
   await page.getByLabel('Rol que buscás').fill('Frontend Developer');
   await page.getByRole('button', { name: 'Continuar' }).click();
   await page.getByRole('button', { name: 'React', exact: true }).click();

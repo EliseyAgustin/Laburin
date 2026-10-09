@@ -22,6 +22,7 @@ export function OnboardingWizard() {
   const { refresh } = useOnboarding();
 
   const [step, setStep] = useState(1);
+  const [nombre, setNombre] = useState('');
   const [rolBuscado, setRolBuscado] = useState('');
   const [stackInteres, setStackInteres] = useState<string[]>([]);
   const [stackDraft, setStackDraft] = useState('');
@@ -53,7 +54,7 @@ export function OnboardingWizard() {
   }
 
   function validar(paso: number, tecnologias: string[]): boolean {
-    const resultado = validarPasoOnboarding(paso, { rol: rolBuscado, tecnologias, modalidad, ubicacion });
+    const resultado = validarPasoOnboarding(paso, { nombre, rol: rolBuscado, tecnologias, modalidad, ubicacion });
     setErrores(resultado);
     return Object.keys(resultado).length === 0;
   }
@@ -81,6 +82,7 @@ export function OnboardingWizard() {
     setError(null);
     try {
       await completarOnboarding({
+        nombre: nombre.trim(),
         rol_buscado: rolBuscado.trim(),
         stack_interes: tecnologias,
         modalidad_preferida: modalidad,
@@ -124,6 +126,7 @@ export function OnboardingWizard() {
             Ya ordenamos las ofertas según lo que buscás. Podés cambiar estos datos cuando quieras en Mi perfil de
             búsqueda.
           </p>
+          <p className="text-sm text-on-surface-variant">Te dejamos un mensaje de bienvenida en Mensajes.</p>
           <div className="flex flex-col sm:flex-row gap-3 w-full justify-center pt-2">
             <button
               type="button"
@@ -172,6 +175,12 @@ export function OnboardingWizard() {
 
         {step === 1 && (
           <RolStep
+            nombre={nombre}
+            onNombreChange={(v) => {
+              setNombre(v);
+              limpiarError('nombre');
+            }}
+            errorNombre={errores.nombre}
             value={rolBuscado}
             onChange={(v) => {
               setRolBuscado(v);
@@ -214,6 +223,11 @@ export function OnboardingWizard() {
         {step === 4 && <NivelExperienciaStep value={nivel} onChange={setNivel} />}
         {step === 5 && (
           <ResumenStep
+            nombre={nombre}
+            onNombreChange={(v) => {
+              setNombre(v);
+              limpiarError('nombre');
+            }}
             rol={rolBuscado}
             onRolChange={(v) => {
               setRolBuscado(v);

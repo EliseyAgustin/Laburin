@@ -1,3 +1,4 @@
+import { AvisoPrivacidad } from '@/components/AvisoPrivacidad';
 import { scrollFieldIntoView } from '@/lib/utils';
 import type { Modalidad } from '@/types/oferta';
 import type { Seniority } from '@/types/perfilUsuario';
@@ -9,6 +10,8 @@ import { MODALIDADES_ONBOARDING } from './ModalidadStep';
 import { NIVELES_EXPERIENCIA } from './NivelExperienciaStep';
 
 interface ResumenStepProps {
+  nombre: string;
+  onNombreChange: (value: string) => void;
   rol: string;
   onRolChange: (value: string) => void;
   tecnologias: string[];
@@ -38,6 +41,24 @@ export function ResumenStep(props: ResumenStepProps) {
           Esto es lo que vamos a guardar. Podés corregir cualquier dato acá mismo antes de terminar.
         </p>
       </div>
+
+      <section className="flex flex-col gap-1.5">
+        <label htmlFor="resumen-nombre" className="text-sm font-semibold text-on-surface">
+          Tu nombre
+        </label>
+        <input
+          id="resumen-nombre"
+          type="text"
+          maxLength={100}
+          value={props.nombre}
+          aria-invalid={Boolean(errores.nombre)}
+          aria-describedby={errores.nombre ? 'error-nombre' : undefined}
+          onChange={(e) => props.onNombreChange(e.target.value)}
+          onFocus={scrollFieldIntoView}
+          className={CLASE_INPUT}
+        />
+        <ErrorCampo id="error-nombre" mensaje={errores.nombre} />
+      </section>
 
       <section className="flex flex-col gap-1.5">
         <label htmlFor="resumen-rol" className="text-sm font-semibold text-on-surface">
@@ -114,6 +135,7 @@ export function ResumenStep(props: ResumenStepProps) {
       <p className="text-sm text-on-surface-variant bg-surface-container-low border border-outline-variant rounded-lg px-4 py-3">
         Podés cambiarlos cuando quieras en Mi perfil de búsqueda.
       </p>
+      <AvisoPrivacidad />
     </div>
   );
 }

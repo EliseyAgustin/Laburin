@@ -32,6 +32,12 @@ export async function completarOnboarding(input: PerfilUsuarioInput): Promise<vo
     );
   if (perfilError) throw perfilError;
 
+  // El nombre también queda en la cuenta, que es de donde lo lee "Mi cuenta".
+  if (input.nombre) {
+    const { error: nombreError } = await supabase.auth.updateUser({ data: { full_name: input.nombre } });
+    if (nombreError) throw nombreError;
+  }
+
   const criterios = input.stack_interes.map((tech) => construirCriterio('stack', tech, PESO_DEFECTO.stack));
 
   if (input.modalidad_preferida) {

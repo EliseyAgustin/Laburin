@@ -33,8 +33,17 @@ export async function omitirOnboarding(page: Page) {
 
 // En mobile el menú lateral está cerrado: hay que abrirlo antes de usar la navegación o "Mi cuenta".
 export async function abrirMenuSiHaceFalta(page: Page) {
+  // Con el menú ya abierto (mobile) el botón sigue en pantalla pero tapado por el menú: no hay que volver a tocarlo.
+  if ((await page.locator('aside.translate-x-0').count()) > 0) return;
   const abrir = page.getByRole('button', { name: 'Abrir menú' });
   if (await abrir.isVisible()) await abrir.click();
+}
+
+// En mobile, con el menú abierto el contenido queda tapado: se cierra antes de seguir usando la pantalla.
+export async function cerrarMenuSiEstaAbierto(page: Page) {
+  if ((await page.locator('aside.translate-x-0').count()) === 0) return;
+  await page.getByRole('button', { name: 'Cerrar menú' }).click();
+  await expect(page.locator('aside.translate-x-0')).toHaveCount(0);
 }
 
 export async function irA(page: Page, seccion: 'Ofertas' | 'Mis postulaciones' | 'Mi progreso' | 'Mi perfil de búsqueda') {
@@ -48,4 +57,26 @@ export async function conApiDe(cuenta: Cuenta): Promise<Api> {
 
 export function aceptarDialogos(page: Page) {
   page.on('dialog', (dialog) => dialog.accept());
+}
+
+export async function cerrarSesion(page: Page) {
+  await abrirMenuSiHaceFalta(page);
+  await page.getByRole('button', { name: 'Cerrar Sesión' }).click();
+  await expect(page.getByRole('button', { name: 'Ingresar' })).toBeVisible();
+}
+
+// Recorre los 5 pasos del Onboarding con datos mínimos y llega a la pantalla "Tu perfil quedó listo".
+export async function completarOnboarding(page: Page, nombre: string) {
+  const continuar = page.getByRole('button', { name: 'Continuar' });
+  await page.getByLabel('¿Cómo te llamás?').fill(nombre);
+  await page.getByLabel('Rol que buscás').fill('QA Automation');
+  await continuar.click();
+  await page.getByRole('button', { name: 'SQL', exact: true }).click();
+  await continuar.click();
+  await page.getByRole('button', { name: 'Remoto', exact: true }).click();
+  await page.getByPlaceholder('Ej: Buenos Aires, Argentina').fill('Córdoba, Argentina');
+  await continuar.click();
+  await continuar.click(); // nivel de experiencia: opcional
+  await page.getByRole('button', { name: 'Confirmar y terminar' }).click();
+  await expect(page.getByRole('heading', { name: 'Tu perfil quedó listo' })).toBeVisible();
 }

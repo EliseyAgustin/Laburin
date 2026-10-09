@@ -9,6 +9,8 @@ import { ProtectedRoute } from './components/ProtectedRoute';
 import { AuthProvider } from './hooks/useAuth';
 import { ThemeProvider } from './hooks/useTheme';
 import { OnboardingProvider } from './hooks/useOnboarding';
+import { RolProvider } from './hooks/useRol';
+import { SoloPara } from './components/SoloPara';
 import { Login } from './pages/Login';
 import { RecuperarPassword } from './pages/RecuperarPassword';
 import { NuevaPassword } from './pages/NuevaPassword';
@@ -17,12 +19,16 @@ import { Tablero } from './pages/Tablero';
 import { Offers } from './pages/Offers';
 import { Analytics } from './pages/Analytics';
 import { Settings } from './pages/Settings';
+import { Mensajes } from './pages/Mensajes';
+import { Candidatos } from './pages/Candidatos';
+import { CandidatoDetalle } from './pages/CandidatoDetalle';
 import { REDIRECCIONES_LEGACY, RUTAS } from './lib/rutas';
 
 export default function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
+        <RolProvider>
         <OnboardingProvider>
           <BrowserRouter>
             <Routes>
@@ -46,10 +52,20 @@ export default function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route path={RUTAS.postulaciones} element={<Tablero />} />
-                <Route path={RUTAS.ofertas} element={<Offers />} />
-                <Route path={RUTAS.progreso} element={<Analytics />} />
-                <Route path={RUTAS.perfil} element={<Settings />} />
+                {/* Pantallas personales del candidato. */}
+                <Route element={<SoloPara rol="candidato" />}>
+                  <Route path={RUTAS.postulaciones} element={<Tablero />} />
+                  <Route path={RUTAS.ofertas} element={<Offers />} />
+                  <Route path={RUTAS.progreso} element={<Analytics />} />
+                  <Route path={RUTAS.perfil} element={<Settings />} />
+                  <Route path={RUTAS.mensajes} element={<Mensajes />} />
+                </Route>
+
+                {/* Pantallas del administrador: un candidato que las abre por URL vuelve a su inicio. */}
+                <Route element={<SoloPara rol="administrador" />}>
+                  <Route path={RUTAS.candidatos} element={<Candidatos />} />
+                  <Route path={`${RUTAS.candidatos}/:id`} element={<CandidatoDetalle />} />
+                </Route>
               </Route>
 
               {/* URLs anteriores: siguen llevando a la pantalla correcta (enlaces guardados, marcadores). */}
@@ -62,6 +78,7 @@ export default function App() {
             </Routes>
           </BrowserRouter>
         </OnboardingProvider>
+        </RolProvider>
       </AuthProvider>
     </ThemeProvider>
   );

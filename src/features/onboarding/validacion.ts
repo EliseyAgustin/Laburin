@@ -1,13 +1,21 @@
 import type { Modalidad } from '@/types/oferta';
 
 export interface DatosOnboarding {
+  nombre: string;
   rol: string;
   tecnologias: string[];
   modalidad: Modalidad | null;
   ubicacion: string;
 }
 
-export type ErroresOnboarding = Partial<Record<'rol' | 'tecnologias' | 'modalidad' | 'ubicacion', string>>;
+export type ErroresOnboarding = Partial<Record<'nombre' | 'rol' | 'tecnologias' | 'modalidad' | 'ubicacion', string>>;
+
+export function validarNombre(nombre: string): string | null {
+  const limpio = nombre.trim();
+  if (!limpio) return 'Escribí tu nombre.';
+  if (limpio.length < 2) return 'El nombre es muy corto. Escribí al menos 2 letras.';
+  return null;
+}
 
 export function validarRol(rol: string): string | null {
   const limpio = rol.trim();
@@ -32,8 +40,9 @@ function soloErrores(candidatos: ErroresOnboarding): ErroresOnboarding {
   return Object.fromEntries(Object.entries(candidatos).filter(([, mensaje]) => mensaje)) as ErroresOnboarding;
 }
 
-// Paso 1 rol, 2 tecnologías, 3 modalidad y ubicación, 4 nivel de experiencia (opcional), 5 resumen (valida todo).
+// Paso 1 nombre y rol, 2 tecnologías, 3 modalidad y ubicación, 4 nivel de experiencia (opcional), 5 resumen (valida todo).
 export function validarPasoOnboarding(paso: number, datos: DatosOnboarding): ErroresOnboarding {
+  const nombre = validarNombre(datos.nombre);
   const rol = validarRol(datos.rol);
   const tecnologias = validarTecnologias(datos.tecnologias);
   const modalidad = validarModalidad(datos.modalidad);
@@ -41,13 +50,13 @@ export function validarPasoOnboarding(paso: number, datos: DatosOnboarding): Err
 
   switch (paso) {
     case 1:
-      return soloErrores({ rol });
+      return soloErrores({ nombre, rol });
     case 2:
       return soloErrores({ tecnologias });
     case 3:
       return soloErrores({ modalidad, ubicacion });
     case 5:
-      return soloErrores({ rol, tecnologias, modalidad, ubicacion });
+      return soloErrores({ nombre, rol, tecnologias, modalidad, ubicacion });
     default:
       return {};
   }

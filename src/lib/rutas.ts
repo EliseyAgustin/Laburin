@@ -4,6 +4,8 @@ export const RUTAS = {
   postulaciones: '/mis-postulaciones',
   progreso: '/mi-progreso',
   perfil: '/mi-perfil',
+  mensajes: '/mensajes',
+  candidatos: '/candidatos',
 } as const;
 
 export const REDIRECCIONES_LEGACY: Record<string, string> = {

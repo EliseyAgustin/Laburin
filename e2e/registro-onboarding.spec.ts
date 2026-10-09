@@ -14,8 +14,15 @@ test('onboarding de 5 pasos: valida cada paso, no pierde lo escrito, resume, con
   // --- Paso 1: el rol es obligatorio ---
   await expect(page.getByText('Paso 1 de 5')).toBeVisible();
   await continuar.click();
+  await expect(page.getByText('Escribí tu nombre.')).toBeVisible();
   await expect(page.getByText('Escribí el rol que buscás, por ejemplo Frontend Developer.')).toBeVisible();
+  // El aviso de privacidad se ve desde el primer paso, junto al nombre.
+  await expect(
+    page.getByText('Tu nombre y tu perfil de búsqueda (rol, tecnologías, modalidad, ubicación y nivel) los puede ver el equipo de Laburin. Tus ofertas y postulaciones son solo tuyas.')
+  ).toBeVisible();
   await expect(page.getByText('Paso 1 de 5')).toBeVisible();
+  await page.getByLabel('¿Cómo te llamás?').fill('Ana Gómez');
+  await expect(page.getByText('Escribí tu nombre.')).toHaveCount(0);
   await page.getByLabel('Rol que buscás').fill('QA Automation Engineer');
   await expect(page.getByText('Escribí el rol que buscás')).toHaveCount(0);
 
@@ -73,6 +80,7 @@ test('onboarding de 5 pasos: valida cada paso, no pierde lo escrito, resume, con
   await expect(page.getByText('Paso 5 de 5')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Revisá tus datos' })).toBeVisible();
   await expect(page.getByText('Podés cambiarlos cuando quieras en Mi perfil de búsqueda.')).toBeVisible();
+  await expect(page.getByLabel('Tu nombre')).toHaveValue('Ana Gómez');
   await expect(page.getByLabel('Rol que buscás')).toHaveValue('QA Automation Engineer');
   await expect(elegidas.getByRole('listitem')).toHaveCount(2);
   await expect(elegidas).toContainText('React');
@@ -85,6 +93,7 @@ test('onboarding de 5 pasos: valida cada paso, no pierde lo escrito, resume, con
 
   // --- Confirmación ---
   await expect(page.getByRole('heading', { name: 'Tu perfil quedó listo' })).toBeVisible();
+  await expect(page.getByText('Te dejamos un mensaje de bienvenida en Mensajes.')).toBeVisible();
   await page.getByRole('button', { name: 'Ir a Mis postulaciones' }).click();
 
   // Mis postulaciones vacío: las 6 columnas, todas sin tarjetas.
@@ -112,9 +121,10 @@ test('onboarding de 5 pasos: valida cada paso, no pierde lo escrito, resume, con
 
   const { data: perfil } = await api.sb
     .from('perfil_usuario')
-    .select('rol_buscado, stack_interes, seniority, modalidad_preferida, onboarding_completado, dias_inactividad_recordatorio')
+    .select('nombre, rol_buscado, stack_interes, seniority, modalidad_preferida, onboarding_completado, dias_inactividad_recordatorio')
     .single();
   expect(perfil).toEqual({
+    nombre: 'Ana Gómez',
     rol_buscado: 'QA Automation Engineer',
     stack_interes: ['sql', 'Cypress'],
     seniority: 'semi_senior',
@@ -128,6 +138,7 @@ test('"Atrás" conserva lo cargado y el resumen no deja terminar con un dato obl
   await registrarPorUI(page);
   const continuar = page.getByRole('button', { name: 'Continuar' });
 
+  await page.getByLabel('¿Cómo te llamás?').fill('Luis Pérez');
   await page.getByLabel('Rol que buscás').fill('Data Analyst');
   await continuar.click();
   await page.getByRole('button', { name: 'Python', exact: true }).click();

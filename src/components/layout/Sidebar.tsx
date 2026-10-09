@@ -1,18 +1,23 @@
 import { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Briefcase, LayoutDashboard, BarChart2, Settings, LogOut, X, UserCircle } from 'lucide-react';
+import { Briefcase, LayoutDashboard, BarChart2, Settings, LogOut, X, UserCircle, Mail, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { RUTAS } from '@/lib/rutas';
 import { useAuth } from '@/hooks/useAuth';
+import { useRol } from '@/hooks/useRol';
+import { useMensajesNoLeidos } from '@/hooks/useMensajesNoLeidos';
 import { CuentaModal } from '@/components/CuentaModal';
 import logoIcono from '@/assets/logo/laburin-logo-icono.svg';
 
-const navItems = [
+const NAV_CANDIDATO = [
   { icon: Briefcase, label: 'Ofertas', path: RUTAS.ofertas },
   { icon: LayoutDashboard, label: 'Mis postulaciones', path: RUTAS.postulaciones },
   { icon: BarChart2, label: 'Mi progreso', path: RUTAS.progreso },
   { icon: Settings, label: 'Mi perfil de búsqueda', path: RUTAS.perfil },
+  { icon: Mail, label: 'Mensajes', path: RUTAS.mensajes },
 ];
+
+const NAV_ADMINISTRADOR = [{ icon: Users, label: 'Candidatos', path: RUTAS.candidatos }];
 
 interface SidebarProps {
   open: boolean;
@@ -22,6 +27,9 @@ interface SidebarProps {
 export function Sidebar({ open, onClose }: SidebarProps) {
   const navigate = useNavigate();
   const { signOut } = useAuth();
+  const { rol } = useRol();
+  const noLeidos = useMensajesNoLeidos(rol === 'candidato');
+  const navItems = rol === 'administrador' ? NAV_ADMINISTRADOR : rol === 'candidato' ? NAV_CANDIDATO : [];
   const [cuentaAbierta, setCuentaAbierta] = useState(false);
 
   // Evita que el fondo scrollee detrás del drawer mientras está abierto en mobile.
@@ -87,6 +95,14 @@ export function Sidebar({ open, onClose }: SidebarProps) {
             >
               <item.icon className={cn("w-5 h-5")} />
               <span>{item.label}</span>
+              {item.path === RUTAS.mensajes && noLeidos > 0 && (
+                <span
+                  aria-label={noLeidos === 1 ? '1 mensaje sin leer' : `${noLeidos} mensajes sin leer`}
+                  className="ml-auto bg-primary text-on-primary text-[11px] font-semibold min-w-5 h-5 px-1.5 rounded-full flex items-center justify-center"
+                >
+                  {noLeidos}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

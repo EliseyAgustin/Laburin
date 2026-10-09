@@ -1,11 +1,25 @@
 import { describe, expect, it } from 'vitest';
 import {
   validarModalidad,
+  validarNombre,
   validarPasoOnboarding,
   validarRol,
   validarTecnologias,
   validarUbicacion,
 } from './validacion';
+
+describe('validarNombre', () => {
+  it('pide el nombre cuando está vacío o son solo espacios', () => {
+    expect(validarNombre('')).toBe('Escribí tu nombre.');
+    expect(validarNombre('   ')).toBe('Escribí tu nombre.');
+  });
+  it('pide un nombre más largo si tiene una sola letra', () => {
+    expect(validarNombre('A')).toBe('El nombre es muy corto. Escribí al menos 2 letras.');
+  });
+  it('acepta un nombre válido, con espacios y tildes', () => {
+    expect(validarNombre('  Ana Gómez ')).toBeNull();
+  });
+});
 
 describe('validarRol', () => {
   it('pide escribir un rol cuando está vacío o son solo espacios', () => {
@@ -48,10 +62,15 @@ describe('validarUbicacion', () => {
 });
 
 describe('validarPasoOnboarding', () => {
-  const completo = { rol: 'QA', tecnologias: ['SQL'], modalidad: 'remoto' as const, ubicacion: 'Córdoba' };
+  const completo = { nombre: 'Ana Gómez', rol: 'QA', tecnologias: ['SQL'], modalidad: 'remoto' as const, ubicacion: 'Córdoba' };
 
-  it('el paso 1 valida el rol', () => {
+  it('el paso 1 valida el nombre y el rol', () => {
     expect(validarPasoOnboarding(1, { ...completo, rol: '' })).toEqual({ rol: expect.any(String) });
+    expect(validarPasoOnboarding(1, { ...completo, nombre: '' })).toEqual({ nombre: expect.any(String) });
+    expect(validarPasoOnboarding(1, { ...completo, nombre: '', rol: '' })).toEqual({
+      nombre: expect.any(String),
+      rol: expect.any(String),
+    });
   });
   it('el paso 2 valida las tecnologías', () => {
     expect(validarPasoOnboarding(2, { ...completo, tecnologias: [] })).toEqual({ tecnologias: expect.any(String) });
@@ -66,7 +85,8 @@ describe('validarPasoOnboarding', () => {
     expect(validarPasoOnboarding(4, { ...completo, rol: '', tecnologias: [] })).toEqual({});
   });
   it('el resumen (paso 5) valida todos los campos', () => {
-    expect(validarPasoOnboarding(5, { rol: '', tecnologias: [], modalidad: null, ubicacion: '' })).toEqual({
+    expect(validarPasoOnboarding(5, { nombre: '', rol: '', tecnologias: [], modalidad: null, ubicacion: '' })).toEqual({
+      nombre: expect.any(String),
       rol: expect.any(String),
       tecnologias: expect.any(String),
       modalidad: expect.any(String),

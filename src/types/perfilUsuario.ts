@@ -5,6 +5,7 @@ export type Seniority = 'junior' | 'semi_senior' | 'senior';
 export interface PerfilUsuario {
   id: string;
   user_id: string;
+  nombre: string | null;
   rol_buscado: string | null;
   stack_interes: string[];
   modalidad_preferida: Modalidad | null;

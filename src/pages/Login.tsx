@@ -5,7 +5,8 @@ import { AuthLayout } from '@/components/auth/AuthLayout';
 import { CampoPassword } from '@/components/auth/CampoPassword';
 import { MedidorPassword } from '@/components/auth/MedidorPassword';
 import { generarDatosEjemplo } from '@/lib/datosEjemplo';
-import { RUTAS } from '@/lib/rutas';
+import { rutaInicialPorRol } from '@/lib/rol';
+import { obtenerMiRol } from '@/services/roles';
 import type { ErrorAuthTraducido } from '@/lib/authErrores';
 import { validarEmail, validarPasswordIngreso, validarPasswordNueva } from '@/lib/validacionAuth';
 import { scrollFieldIntoView } from '@/lib/utils';
@@ -57,7 +58,9 @@ export function Login() {
         return;
       }
 
-      navigate(RUTAS.postulaciones, { replace: true });
+      // El administrador cae en Candidatos; cualquier otra persona, en Mis postulaciones.
+      const rol = await obtenerMiRol().catch(() => 'candidato' as const);
+      navigate(rutaInicialPorRol(rol), { replace: true });
       return;
     }
 
