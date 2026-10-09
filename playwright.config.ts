@@ -43,7 +43,8 @@ export default defineConfig({
     {
       name: 'desktop',
       dependencies: ['setup-desktop'],
-      testIgnore: /auth\.setup\.ts/,
+      // El teclado virtual solo existe en mobile: ignorarla acá evita un "skipped" permanente en cada corrida.
+      testIgnore: [/auth\.setup\.ts/, /mobile-teclado\.spec\.ts/],
       use: { ...desktop, storageState: 'e2e/.auth/desktop.json' },
     },
     { name: 'setup-mobile', testMatch: /auth\.setup\.ts/, use: { ...mobile } },

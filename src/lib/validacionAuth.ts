@@ -1,5 +1,6 @@
-// Mínimo que acepta el servicio de autenticación (Supabase). El medidor de fortaleza orienta, no bloquea.
-export const PASSWORD_MIN = 6;
+// Largo mínimo de una contraseña nueva (registro, recuperación y Mi cuenta). El ingreso no lo exige, para que
+// las cuentas anteriores sigan entrando. El medidor de fortaleza orienta, no bloquea.
+export const PASSWORD_MIN = 8;
 
 const MENSAJE_EMAIL_INVALIDO = 'Escribí un email válido, por ejemplo nombre@correo.com';
 

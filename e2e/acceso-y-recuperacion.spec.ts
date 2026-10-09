@@ -101,7 +101,7 @@ test.describe('Registro', () => {
     await campoPassword(page).fill('abc');
     await expect(page.getByText('Contraseña débil')).toBeVisible();
     await page.getByRole('button', { name: 'Registrarme' }).click();
-    await expect(page.getByText('La contraseña tiene que tener al menos 6 caracteres.')).toBeVisible();
+    await expect(page.getByText('La contraseña tiene que tener al menos 8 caracteres.')).toBeVisible();
 
     await campoPassword(page).fill('Una-clave-larga-9!');
     await expect(page.getByText('Contraseña fuerte')).toBeVisible();
@@ -223,7 +223,7 @@ test.describe('Nueva contraseña con sesión de recuperación', () => {
     await page.getByLabel('Contraseña nueva').fill('abc');
     await expect(page.getByText('Contraseña débil')).toBeVisible();
     await page.getByRole('button', { name: 'Guardar contraseña nueva' }).click();
-    await expect(page.getByText('La contraseña tiene que tener al menos 6 caracteres.')).toBeVisible();
+    await expect(page.getByText('La contraseña tiene que tener al menos 8 caracteres.')).toBeVisible();
 
     await page.getByLabel('Contraseña nueva').fill('Una-clave-larga-9!');
     await expect(page.getByText('Contraseña fuerte')).toBeVisible();

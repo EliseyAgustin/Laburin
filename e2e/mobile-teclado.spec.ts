@@ -1,14 +1,13 @@
 import { expect, test } from '@playwright/test';
-import { campoPassword, esMobile } from './ui';
+import { campoPassword } from './ui';
 
 test.use({ storageState: { cookies: [], origins: [] } });
 
+// Solo corre en el proyecto mobile (ver testIgnore en playwright.config.ts).
 // SIMULACIÓN, no el teclado real: Chromium emulado no abre un teclado virtual. Lo que se reproduce es su efecto
 // (el viewport visible se achica ~340 px) y se verifica que, al enfocar, la app deje el campo a la vista.
 // La interacción real con el teclado de iOS/Android queda como zona ciega documentada (ver e2e/README.md).
-test('con el viewport reducido por el teclado, el campo enfocado queda visible', async ({ page }, testInfo) => {
-  test.skip(!esMobile(testInfo), 'Solo aplica a mobile');
-
+test('con el viewport reducido por el teclado, el campo enfocado queda visible', async ({ page }) => {
   await page.goto('/');
   const alturaConTeclado = 812 - 340;
   await page.setViewportSize({ width: 375, height: alturaConTeclado });

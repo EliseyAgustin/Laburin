@@ -40,9 +40,9 @@ describe('validarPasswordNueva', () => {
     expect(validarPasswordNueva('')).toBe('Elegí una contraseña.');
   });
   it('exige el largo mínimo', () => {
-    expect(PASSWORD_MIN).toBe(6);
-    expect(validarPasswordNueva('12345')).toBe('La contraseña tiene que tener al menos 6 caracteres.');
-    expect(validarPasswordNueva('123456')).toBeNull();
+    expect(PASSWORD_MIN).toBe(8);
+    expect(validarPasswordNueva('1234567')).toBe('La contraseña tiene que tener al menos 8 caracteres.');
+    expect(validarPasswordNueva('12345678')).toBeNull();
   });
 });
 
