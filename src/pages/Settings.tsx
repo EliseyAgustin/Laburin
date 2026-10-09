@@ -345,7 +345,7 @@ export function Settings() {
                             onBlur={() => handlePesoBlur(c)}
                             className="w-10 text-center text-xs font-medium text-primary bg-transparent border-none p-0 outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           />
-                          <span className="text-outline text-xs">pts</span>
+                          <span className="text-outline text-xs">puntos</span>
                         </div>
                         <ToggleActivo
                           activo={c.activo}
@@ -411,7 +411,10 @@ export function Settings() {
                   <h3 className="text-xl font-heading font-semibold text-on-surface">Ubicación</h3>
                 </div>
                 <div className="p-4 flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-2">
-                  {ubicacionCriterios.length === 0 && (
+                  <p className="text-xs text-on-surface-variant">
+                  Ojo: con ofertas remotas la ubicación casi nunca suma puntos, porque muchas dicen «Worldwide» o solo un país.
+                </p>
+                {ubicacionCriterios.length === 0 && (
                     <p className="text-sm text-on-surface-variant text-center py-2">
                       Todavía no agregaste ninguna ubicación.
                     </p>
@@ -441,7 +444,7 @@ export function Settings() {
                             onBlur={() => handlePesoBlur(c)}
                             className="w-10 text-center text-xs font-medium text-on-secondary-container bg-transparent border-none p-0 outline-none focus:ring-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                           />
-                          <span className="text-outline text-xs">pts</span>
+                          <span className="text-outline text-xs">puntos</span>
                         </div>
                         <ToggleActivo
                           activo={c.activo}
@@ -508,7 +511,7 @@ export function Settings() {
                 <h3 className="text-xl font-heading font-semibold text-on-surface">Tecnologías</h3>
               </div>
               <span className="bg-primary-container text-on-primary-container text-[11px] font-semibold px-2 py-1 rounded-full">
-                Pesa mucho en el puntaje
+                Más peso, más puntos
               </span>
             </div>
 

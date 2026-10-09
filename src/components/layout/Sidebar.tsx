@@ -67,7 +67,7 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               <X className="w-5 h-5" />
             </button>
           </div>
-          <div className="text-xs font-medium text-on-surface-variant">Gestión de Empleos</div>
+          <div className="text-xs font-medium text-on-surface-variant">Tu búsqueda de empleo</div>
         </div>
 
         {/* Navigation */}

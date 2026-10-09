@@ -34,3 +34,18 @@ test('el menú usa los nombres nuevos y cada pantalla explica qué se hace ahí'
     await expect(page.getByRole('heading', { name: bloque, level: 2 })).toBeVisible();
   }
 });
+
+test('textos aclarados: sin siglas ni jerga en el menú, en Mi progreso y en Mi perfil de búsqueda', async ({ page }) => {
+  await page.goto('/mi-perfil');
+  await expect(page.getByText('Tu búsqueda de empleo')).toBeVisible();
+  await expect(page.getByText('Gestión de Empleos')).toHaveCount(0);
+  await expect(page.getByText('Más peso, más puntos')).toBeVisible();
+  await expect(page.getByText('Pesa mucho en el puntaje')).toHaveCount(0);
+  await expect(
+    page.getByText('Ojo: con ofertas remotas la ubicación casi nunca suma puntos, porque muchas dicen «Worldwide» o solo un país.')
+  ).toBeVisible();
+  await expect(page.getByText('pts', { exact: true })).toHaveCount(0);
+
+  await page.goto('/mi-progreso');
+  await expect(page.getByText(/pts/)).toHaveCount(0);
+});

@@ -214,7 +214,7 @@ function Contenido({
           detail={
             m.score.promedioPct === null
               ? 'Sin criterios activos para comparar'
-              : `${porcentaje(m.score.promedioPct)} del máximo posible (${m.score.maximo} pts)`
+              : `${porcentaje(m.score.promedioPct)} del máximo posible (${m.score.maximo} puntos)`
           }
         />
         <KpiCard
