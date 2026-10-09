@@ -7,8 +7,11 @@ Navegador real (Chromium) contra la app levantada con Vite y la base real de Sup
 
 1. `npm install` y `npx playwright install chromium`.
 2. Copiar `.env.e2e.example` a `.env.e2e` y completar `E2E_EMAIL`, `E2E_EMAIL_MOBILE` y `E2E_PASSWORD`
-   (no se commitea). `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` se leen de `.env`.
-3. `npm run test:e2e` (todo) o `npx playwright test --project=desktop registro` (una spec).
+   (no se commitea; `.env.e2e` está en `.gitignore`). `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` se leen de `.env`.
+3. Para las pruebas de roles y mensajes, agregar también `E2E_ADMIN_EMAIL` y `E2E_ADMIN_PASSWORD`: una cuenta de
+   administrador de pruebas, registrada desde la app y con el rol asignado **una sola vez** por SQL (el comando está
+   en el README principal, sección "Base de datos"). Los tests solo inician sesión con ella: nunca la modifican.
+4. `npm run test:e2e` (todo) o `npx playwright test --project=desktop registro` (una spec).
 
 La primera vez, `auth.setup.ts` crea las dos cuentas compartidas por el **flujo de registro de la app**.
 No se usa ninguna service role key: la siembra y la limpieza usan el cliente de Supabase autenticado como el
@@ -18,24 +21,48 @@ usuario de prueba, así que respetan RLS igual que un usuario real.
 
 | Proyecto | Viewport | Notas |
 |---|---|---|
-| `desktop` | 1280x800 | Drag-and-drop nativo real |
-| `mobile` | 375x812, touch | Selector "Mover a...", barra de selección, menú lateral |
+| `desktop` | 1280x800 | Drag-and-drop nativo real. Incluye las pruebas de seguridad (`seguridad-*`), que no usan navegador |
+| `mobile` | 375x812, touch | Selector "Mover a...", barra de selección, menú lateral, `mobile-teclado` |
 
-Corren en serie (un solo worker): comparten la base y una cuenta por proyecto.
+Corren en serie (un solo worker): comparten la base y una cuenta por proyecto. `mobile-teclado.spec.ts` se excluye
+del proyecto desktop en `playwright.config.ts` (el teclado virtual solo existe en mobile), en vez de figurar como
+"salteado" en cada corrida; las especs `seguridad-*` se excluyen de mobile porque hablan directo con la API y una
+sola corrida alcanza.
+
+Corrida completa de referencia: **93 tests** (2 sesiones de preparación, 51 en desktop —13 de seguridad— y 40 en mobile),
+todos en verde.
+
+## Especificaciones
+
+| Spec | Qué cubre |
+|---|---|
+| `registro-onboarding` | Configuración inicial de 5 pasos: validaciones, texto sin agregar, duplicados, resumen editable, confirmación |
+| `acceso-y-recuperacion` | Login y registro (validación y errores en español), recuperar y cambiar contraseña (con el envío de mails interceptado) |
+| `navegacion` | Nombres de las secciones, ayuda por pantalla, redirecciones de las URLs anteriores |
+| `filtros-y-perfil` | Filtros de Ofertas (ubicación, puntaje mínimo según el perfil, sin resultados) y aviso de perfil vacío |
+| `recorrido-usuario-nuevo` | Registro con errores a propósito, perfil, "Primeros pasos", importar, postularse, recordatorio, salir, recuperar y volver a entrar |
+| `mensajes-administrador` | Candidato y administrador: bienvenida, listado, envío, no leído, marcado como leído, acceso por rol |
+| `seguridad-roles-mensajes` | Pruebas adversariales contra la base real (13): candidato contra candidato, escalada de rol, vista `candidatos`, mensajes, administrador, sin sesión |
+| `oferta-ciclo-de-vida`, `tablero-carrera`, `import-filtros-borrado`, `import-real`, `paginacion-mas-de-1000`, `configuracion-scoring`, `umbral-inactividad`, `cuenta-y-sesion`, `mobile-teclado` | Las del pase anterior: ciclo de la oferta, Tablero, importación, paginación, scoring, recordatorios, sesión y teclado |
 
 ## Datos de prueba
 
 - Cada test que usa la cuenta compartida arranca con la cuenta reseteada (`api.resetear()`): perfil completo,
   umbral por defecto y criterios base (React 15, remoto 10), sin ofertas.
-- Las specs que cambian la contraseña o cierran sesión usan una cuenta propia, creada por el registro de la app.
+- Las specs que cambian la contraseña, cierran sesión o prueban roles y mensajes usan cuentas propias, creadas por el
+  registro de la app o por la API pública de Auth; el candidato de cada test se crea en la corrida.
 - Al terminar (`global-teardown.ts`) se borran **todos los datos** de las cuentas compartidas y temporales
-  (ofertas, postulaciones, interacciones, criterios y perfil). Los usuarios de Auth huérfanos se dejan.
+  (ofertas, postulaciones, interacciones, criterios, perfil y mensajes recibidos). Los usuarios de Auth huérfanos
+  se dejan: borrarlos requeriría una service role key. Los mensajes que envía el administrador se borran junto con
+  los de su destinatario, porque cada persona puede borrar los que recibe.
 - Remotive y Arbeitnow se interceptan con `page.route` para que el import sea determinista;
   `import-real.spec.ts` es el smoke contra los servicios reales y se saltea de forma explícita si ninguno responde.
+- El envío de mails de recuperación de contraseña también se intercepta: ningún test depende de que llegue un mail
+  real ni consume el cupo del servicio de correo.
 
 ## Zonas ciegas (lo que esta suite NO verifica)
 
-Ver la lista actualizada en la Memoria Técnica (Sección 6). Resumen:
+Ver la lista actualizada en la Memoria Técnica (Sección 7). Resumen:
 
 - **Teclado virtual real:** `mobile-teclado.spec.ts` solo simula su efecto (viewport reducido).
 - **Touch real / gestos:** el drag táctil no existe en la app (se usa el selector), y Playwright emula el touch.
@@ -43,3 +70,5 @@ Ver la lista actualizada en la Memoria Técnica (Sección 6). Resumen:
 - **Autoscroll durante el drag:** en desktop se desplaza el tablero antes de arrastrar; el autoscroll por
   proximidad al borde que hace el navegador al arrastrar no se verifica.
 - **Fuentes externas reales:** salvo el smoke, dependen de mocks.
+- **Correo real:** la recuperación de contraseña se prueba hasta el pedido a Supabase; que el mail llegue y que el
+  enlace abra la pantalla de nueva contraseña depende del correo configurado y se verifica a mano.
